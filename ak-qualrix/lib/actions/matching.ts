@@ -119,6 +119,10 @@ export async function updateProfileFull(data: ProfileUpdateData) {
         throw new Error(`Profile update failed: ${error.message}`)
     }
 
+    revalidatePath('/home')
+    revalidatePath('/profile')
+    revalidatePath('/more')
+
     // SC: Sync to Candidates table - do not block profile update if sync fails (often due to RLS in dev/emergency bypass)
     try {
         await syncProfileToCandidate(user.id, data)
