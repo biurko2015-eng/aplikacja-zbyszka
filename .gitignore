@@ -18,6 +18,8 @@ build/
 # local env files
 .env*.local
 ak-qualrix/.env*.local
+# GitHub token for push script (never commit)
+.env.github
 
 # typescript
 *.tsbuildinfo
