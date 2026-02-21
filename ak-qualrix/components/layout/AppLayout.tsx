@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { Sidebar } from './Sidebar'
 import { MobileMenu } from './MobileMenu'
 import { TopBar } from './TopBar'
@@ -30,17 +31,17 @@ export function AppLayout({ children, user, role, permissions }: AppLayoutProps)
                             {children}
                         </main>
 
-                        {/* Footer */}
-                        <footer className="border-t border-border p-6 bg-background/40">
+                        {/* Footer - pr-32 aby FAB (Communicator + AI) nie zasłaniały linków */}
+                        <footer className="border-t border-border p-6 pr-32 md:pr-36 bg-background/40">
                             <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-muted-foreground">
                                 <div className="flex items-center gap-2">
                                     <Logo size="sm" variant="monochrome" showText={false} />
                                     <span>© {new Date().getFullYear()} APK Compass. All rights reserved.</span>
                                 </div>
                                 <div className="flex gap-4">
-                                    <a href="#" className="hover:text-foreground transition-colors">Privacy Policy</a>
-                                    <a href="#" className="hover:text-foreground transition-colors">Terms of Service</a>
-                                    <a href="#" className="hover:text-foreground transition-colors">Support</a>
+                                    <Link href="/privacy-policy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
+                                    <Link href="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
+                                    <Link href="/support" className="hover:text-foreground transition-colors">Support</Link>
                                 </div>
                             </div>
                         </footer>

@@ -258,7 +258,7 @@ export async function signup(formData: FormData) {
 
     const supabase = createClient()
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -274,6 +274,11 @@ export async function signup(formData: FormData) {
     if (error) {
         console.error('[SIGNUP_DEBUG] Error:', error)
         return { error: friendlySignupError(error.message) }
+    }
+
+    // Supabase przy włączonym "Confirm email" często nie zwraca błędu, tylko sukces z pustą tablicą identities
+    if (data?.user && (!data.user.identities || data.user.identities.length === 0)) {
+        return { error: 'Konto z tym adresem email już istnieje. Spróbuj się zalogować.' }
     }
 
     return { success: 'Rejestracja zakończona sukcesem. Potwierdź adres mailowy na swojej skrzynce pocztowej przed zalogowaniem.' }

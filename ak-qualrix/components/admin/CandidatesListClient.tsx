@@ -26,8 +26,8 @@ interface CandidatesListClientProps {
 
 export function CandidatesListClient({ candidates, currentPage, totalPages, totalCount }: CandidatesListClientProps) {
     const pageSize = 12
-    const startItem = (currentPage - 1) * pageSize + 1
-    const endItem = Math.min(currentPage * pageSize, totalCount)
+    const startItem = totalCount === 0 ? 0 : (currentPage - 1) * pageSize + 1
+    const endItem = totalCount === 0 ? 0 : Math.min(currentPage * pageSize, totalCount)
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
     const [isDeleting, setIsDeleting] = useState(false)
     const router = useRouter()
