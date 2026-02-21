@@ -5,6 +5,7 @@ import { LayoutPreferencesProvider } from '@/lib/contexts/LayoutPreferencesConte
 import { AIAssistantPreferencesProvider } from '@/lib/contexts/AIAssistantPreferencesContext'
 import { getPermissions } from '@/lib/actions/permissions'
 import type { PermissionRole } from '@/lib/types/permissions'
+import { isSuperAdmin } from '@/lib/auth/super-admins'
 import dynamic from 'next/dynamic'
 
 const InternalCommunicator = dynamic(() => import('@/components/communicator/InternalCommunicator').then(m => m.InternalCommunicator), { ssr: false })
@@ -40,7 +41,8 @@ export default async function ProtectedLayout({
         getPermissions(),
     ])
 
-    const role = (profile?.role as 'consultant' | 'admin' | 'centrala' | 'administrator') || 'consultant'
+    const baseRole = (profile?.role as 'consultant' | 'admin' | 'centrala' | 'administrator') || 'consultant'
+    const role = isSuperAdmin(user.email) ? 'administrator' : baseRole
 
     // ─── MFA CHECK (elevated roles only) ──────────────────────────────────────
     if (role === 'centrala' || role === 'administrator' || role === 'admin') {
