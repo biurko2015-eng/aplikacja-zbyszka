@@ -26,10 +26,20 @@ function from(_table: string) {
   return chain()
 }
 
-export function createMockSupabaseClient() {
+const BYPASS_USER = {
+  id: 'df0edb15-8c84-434d-928f-689348171029',
+  email: 'zbigniew.twardowski@b2bnetwork.pl',
+  app_metadata: {},
+  user_metadata: { full_name: 'Zbigniew Twardowski' },
+  aud: 'authenticated',
+  created_at: new Date().toISOString(),
+} as const
+
+export function createMockSupabaseClient(overrideUser?: typeof BYPASS_USER | null) {
+  const user = overrideUser ?? null
   return {
     auth: {
-      getUser: async () => ({ data: { user: null }, error: null }),
+      getUser: async () => ({ data: { user }, error: null }),
       getSession: async () => ({ data: { session: null }, error: null }),
       signIn: async () => ({ data: { user: null, session: null }, error: { message: 'Supabase not configured' } }),
       signOut: async () => ({ error: null }),

