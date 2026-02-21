@@ -51,16 +51,27 @@ export function AdminProfileSection({ userProfile, isSuperAdmin = false, dashboa
                 full_name: fullName,
                 phone: phone
             })
+            // Odpowiedź w nieoczekiwanym formacie (np. błąd Next) — traktuj jak błąd
+            if (!result || typeof result !== 'object' || !('success' in result)) {
+                console.error('Profile update unexpected response:', result)
+                toast.error('Nie udało się zapisać zmian. Spróbuj ponownie lub sprawdź logi serwera.')
+                return
+            }
+            if (result.success === false) {
+                toast.error(result.error || 'Nie udało się zapisać zmian.')
+                return
+            }
             setIsDirty(false)
-            if (result?.warning) {
+            if (result.warning) {
                 toast.warning(result.warning)
             } else {
                 toastSuccess('Dane profilowe zostały zaktualizowane!')
             }
             router.refresh()
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Failed to update admin profile:', error)
-            toast.error('Nie udało się zapisać zmian: ' + (error.message || 'Nieznany błąd'))
+            // W produkcji Next często zwraca ogólny komunikat — nigdy nie pokazuj go użytkownikowi
+            toast.error('Nie udało się zapisać zmian. Sprawdź połączenie i spróbuj ponownie. W razie powtórzenia sprawdź logi serwera (Render).')
         } finally {
             setIsSaving(false)
         }

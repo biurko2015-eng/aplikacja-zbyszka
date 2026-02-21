@@ -62,19 +62,20 @@ export default function OnboardingPage() {
             // Since updateProfileFull might not have gdpr_consent argument yet, we might need to update that action too.
             // For now, let's assume it handles "basic info" and we might need a specific updated action.
 
-            await updateProfileFull({
+            const result = await updateProfileFull({
                 bio: data.bio,
-                // gdpr_consent: true - need to ensure backend handles this!
             })
-
-            // Force update gdpr_consent via a direct supabase call if action doesn't support it?
-            // Better to update the action.
-
+            if (result.success === false) {
+                toast.error('Błąd: ' + (result.error || 'Nie udało się zapisać.'))
+                return
+            }
+            if (result.warning) toast.warning(result.warning)
             toastSuccess('Profil utworzony pomyślnie!')
             router.push('/dashboard')
             router.refresh()
-        } catch (error: any) {
-            toast.error('Błąd: ' + error.message)
+        } catch (error: unknown) {
+            const err = error as Error
+            toast.error('Błąd: ' + (err?.message || 'Nieznany błąd'))
         } finally {
             setLoading(false)
         }

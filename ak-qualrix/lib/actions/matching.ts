@@ -1,5 +1,6 @@
 'use server'
 
+import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { generateEmbedding } from '@/lib/ai/embeddings'
 
@@ -84,11 +85,12 @@ export interface ProfileUpdateData {
     cv_url?: string
 }
 
-export async function updateProfileFull(data: ProfileUpdateData) {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+export async function updateProfileFull(data: ProfileUpdateData): Promise<{ success: true; warning?: string } | { success: false; error: string }> {
+    try {
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
 
-    if (!user) throw new Error('Not authenticated')
+        if (!user) return { success: false, error: 'Nie jesteś zalogowany.' }
 
     const updates: ProfileUpdateData = { ...data }
 
@@ -124,7 +126,7 @@ export async function updateProfileFull(data: ProfileUpdateData) {
             const retry = await supabase.from('profiles').update(updatesWithoutPhone).eq('id', user.id)
             if (retry.error) {
                 console.error('[ProfileUpdate] Error updating profiles table:', retry.error)
-                throw new Error(`Profile update failed: ${retry.error.message}`)
+                return { success: false, error: `Błąd zapisu: ${retry.error.message}` }
             }
             revalidatePath('/home')
             revalidatePath('/profile')
@@ -132,28 +134,30 @@ export async function updateProfileFull(data: ProfileUpdateData) {
             return { success: true, warning: 'Imię i nazwisko zapisane. Numer telefonu nie został zapisany — w bazie brakuje kolumny "phone". Poproś administratora o wykonanie migracji.' }
         }
         console.error('[ProfileUpdate] Error updating profiles table:', error)
-        throw new Error(`Profile update failed: ${error.message}`)
+        return { success: false, error: `Błąd zapisu do bazy: ${error.message}` }
     }
 
-    revalidatePath('/home')
-    revalidatePath('/profile')
-    revalidatePath('/more')
+        revalidatePath('/home')
+        revalidatePath('/profile')
+        revalidatePath('/more')
 
-    // SC: Sync to Candidates table - do not block profile update if sync fails (often due to RLS in dev/emergency bypass)
-    try {
-        await syncProfileToCandidate(user.id, data)
-    } catch (syncError: unknown) {
-        const error = syncError as Error
-        console.warn('[ProfileUpdate] Sync to candidates skipped or failed:', error.message)
-        // We return success true anyway because the profiles table WAS updated.
-        // The candidate sync is supplementary for the admin matching view.
-        return {
-            success: true,
-            warning: `Profil zaktualizowany, ale synchronizacja z CRM nie powiodła się: ${error.message}`
+        try {
+            await syncProfileToCandidate(user.id, data)
+        } catch (syncError: unknown) {
+            const syncErr = syncError as Error
+            console.warn('[ProfileUpdate] Sync to candidates skipped or failed:', syncErr.message)
+            return {
+                success: true,
+                warning: `Profil zaktualizowany. Synchronizacja z CRM nie powiodła się.`
+            }
         }
-    }
 
-    return { success: true }
+        return { success: true }
+    } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e)
+        console.error('[ProfileUpdate] Unexpected error:', e)
+        return { success: false, error: msg || 'Nie udało się zapisać zmian. Spróbuj ponownie.' }
+    }
 }
 
 export async function deleteMyProfile() {

@@ -134,7 +134,7 @@ export function ConsultantProfileView() {
         setLoading(true)
         try {
             const { updateProfileFull } = await import('@/lib/actions/matching')
-            await updateProfileFull({
+            const result = await updateProfileFull({
                 bio,
                 experience_years: experience,
                 current_status: status,
@@ -150,11 +150,17 @@ export function ConsultantProfileView() {
                 full_name: fullName,
                 phone: phone
             })
+            if (result.success === false) {
+                alert('Wystąpił błąd podczas zapisywania profilu: ' + (result.error || 'Nieznany błąd'))
+                return
+            }
+            if (result.warning) alert(result.warning)
             alert('Profil zaktualizowany pomyślnie!')
             setIsDirty(false)
-        } catch (error: any) {
-            console.error(error)
-            alert('Wystąpił błąd podczas zapisywania profilu: ' + (error.message || 'Nieznany błąd'))
+        } catch (error: unknown) {
+            const err = error as Error
+            console.error(err)
+            alert('Wystąpił błąd podczas zapisywania profilu: ' + (err?.message || 'Nieznany błąd'))
         } finally {
             setLoading(false)
         }
