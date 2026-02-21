@@ -64,12 +64,12 @@ export function AdminProfileSection({ userProfile, isSuperAdmin = false, dashboa
 
     const onNameChange = (val: string) => {
         setFullName(val)
-        setIsDirty(val !== (user?.full_name || ''))
+        setIsDirty(val !== (user?.full_name || '') || phone !== (user?.phone || ''))
     }
 
     const onPhoneChange = (val: string) => {
         setPhone(val)
-        setIsDirty(val !== (user?.phone || ''))
+        setIsDirty(fullName !== (user?.full_name || '') || val !== (user?.phone || ''))
     }
 
     return (

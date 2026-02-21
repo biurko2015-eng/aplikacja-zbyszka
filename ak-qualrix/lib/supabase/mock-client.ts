@@ -1,39 +1,137 @@
 /**
- * Mock Supabase client used when NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY
- * are not set (e.g. on Render without env, or local demo). App runs without backend;
- * auth returns no user, queries return empty data.
+ * Mock Supabase client when NEXT_PUBLIC_SUPABASE_URL / ANON_KEY nie są ustawione
+ * lub w trybie bypass (emergency_auth_user). W trybie bypass mock jest STATEFUL —
+ * dane profilu są trzymane w pamięci (Map), żeby zapis/odczyt "Mój Profil" i baner działały.
  */
+
+const BYPASS_USER_ID = 'df0edb15-8c84-434d-928f-689348171029'
+const BYPASS_EMAIL = 'zbigniew.twardowski@b2bnetwork.pl'
+
+export const BYPASS_USER = {
+  id: BYPASS_USER_ID,
+  email: BYPASS_EMAIL,
+  app_metadata: {},
+  user_metadata: { full_name: 'Zbigniew Twardowski' },
+  aud: 'authenticated',
+  created_at: new Date().toISOString(),
+} as const
+
+// In-memory store (persystuje w ramach życia procesu Node; reset przy cold start)
+type TableStore = Map<string, Record<string, unknown>>
+const tables = new Map<string, TableStore>()
+
+function getProfilesStore(): TableStore {
+  if (!tables.has('profiles')) {
+    const store = new Map<string, Record<string, unknown>>()
+    store.set(BYPASS_USER_ID, {
+      id: BYPASS_USER_ID,
+      email: BYPASS_EMAIL,
+      full_name: 'Zbigniew Twardowski',
+      role: 'administrator',
+      avatar_url: null,
+      phone: null,
+      created_at: new Date().toISOString(),
+    })
+    tables.set('profiles', store)
+  }
+  return tables.get('profiles')!
+}
+
+type ChainOp = 'select' | 'update' | 'insert' | 'delete' | 'upsert'
+interface ChainState {
+  table: string
+  op: ChainOp
+  selectCols?: string
+  updateData?: Record<string, unknown>
+  filters: Record<string, unknown>
+  single: boolean
+}
+
+function executeChain(state: ChainState): Promise<{ data: unknown; error: null } | { data: null; error: { message: string } }> {
+  if (state.table === 'profiles') {
+    const store = getProfilesStore()
+    const id = state.filters['id'] as string | undefined
+
+    if (state.op === 'select') {
+      const row = id ? store.get(id) ?? null : null
+      return Promise.resolve({ data: state.single ? row : (row ? [row] : []), error: null })
+    }
+    if (state.op === 'update' && id && state.updateData) {
+      const existing = store.get(id) ?? { id }
+      const updated = { ...existing, ...state.updateData } as Record<string, unknown>
+      store.set(id, updated)
+      return Promise.resolve({ data: state.single ? updated : [updated], error: null })
+    }
+  }
+
+  return Promise.resolve({ data: state.single ? null : [], error: null })
+}
+
+function chain(table: string, state: Partial<ChainState> = {}): Record<string, unknown> & PromiseLike<{ data: unknown; error: null }> {
+  const s: ChainState = {
+    table,
+    op: 'select',
+    filters: {},
+    single: false,
+    ...state,
+  }
+
+  const run = () => executeChain(s)
+
+  const builder: Record<string, unknown> = {
+    select: (cols = '*') => chain(table, { ...s, op: 'select', selectCols: cols }),
+    update: (data: Record<string, unknown>) => chain(table, { ...s, op: 'update', updateData: data }),
+    insert: () => chain(table, { ...s, op: 'insert' }),
+    delete: () => chain(table, { ...s, op: 'delete' }),
+    eq: (col: string, val: unknown) => chain(table, { ...s, filters: { ...s.filters, [col]: val } }),
+    neq: (col: string, val: unknown) => chain(table, { ...s }),
+    gt: () => chain(table, { ...s }),
+    gte: () => chain(table, { ...s }),
+    lt: () => chain(table, { ...s }),
+    lte: () => chain(table, { ...s }),
+    like: () => chain(table, { ...s }),
+    ilike: () => chain(table, { ...s }),
+    in: () => chain(table, { ...s }),
+    is: () => chain(table, { ...s }),
+    order: () => chain(table, { ...s }),
+    limit: () => chain(table, { ...s }),
+    range: () => chain(table, { ...s }),
+    abortSignal: () => chain(table, { ...s }),
+    single: () => chain(table, { ...s, single: true }),
+    maybeSingle: () => chain(table, { ...s, single: true }),
+    then: (onFulfilled: (v: { data: unknown; error: null }) => unknown, onRejected?: (e: unknown) => unknown) =>
+      run().then(onFulfilled, onRejected),
+    catch: (onRejected: (e: unknown) => unknown) => run().catch(onRejected),
+  }
+
+  return builder as Record<string, unknown> & PromiseLike<{ data: unknown; error: null }>
+}
+
+function from(table: string) {
+  return chain(table)
+}
 
 const emptyList = { data: [], error: null }
 const emptySingle = { data: null, error: null }
 
-function chain(single = false) {
+function chainLegacy(single = false) {
   const result = single ? emptySingle : emptyList
   const thenable = Promise.resolve(result)
   const o: Record<string, unknown> = {}
   ;['select', 'insert', 'update', 'delete', 'upsert', 'eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'like', 'ilike', 'in', 'is', 'order', 'limit', 'range', 'abortSignal'].forEach((m) => {
     o[m] = () => o
   })
-  o.single = () => chain(true)
-  o.maybeSingle = () => chain(true)
+  o.single = () => chainLegacy(true)
+  o.maybeSingle = () => chainLegacy(true)
   o.then = (onFulfilled: (v: typeof emptyList) => unknown, onRejected?: (e: unknown) => unknown) =>
     thenable.then(onFulfilled, onRejected)
   o.catch = (onRejected: (e: unknown) => unknown) => thenable.catch(onRejected)
   return o as { then: Promise<typeof emptyList>['then']; catch: Promise<typeof emptyList>['catch']; single: () => typeof o; maybeSingle: () => typeof o; [k: string]: unknown }
 }
 
-function from(_table: string) {
-  return chain()
+function fromLegacy(_table: string) {
+  return chainLegacy()
 }
-
-const BYPASS_USER = {
-  id: 'df0edb15-8c84-434d-928f-689348171029',
-  email: 'zbigniew.twardowski@b2bnetwork.pl',
-  app_metadata: {},
-  user_metadata: { full_name: 'Zbigniew Twardowski' },
-  aud: 'authenticated',
-  created_at: new Date().toISOString(),
-} as const
 
 export function createMockSupabaseClient(overrideUser?: typeof BYPASS_USER | null) {
   const user = overrideUser ?? null
@@ -47,7 +145,7 @@ export function createMockSupabaseClient(overrideUser?: typeof BYPASS_USER | nul
       resetPasswordForEmail: async () => ({ data: {}, error: { message: 'Supabase not configured' } }),
       updateUser: async () => ({ data: { user: null }, error: { message: 'Supabase not configured' } }),
     },
-    from,
+    from: user ? from : fromLegacy,
     storage: {
       from: () => ({
         upload: async () => ({ data: null, error: { message: 'Supabase not configured' } }),
