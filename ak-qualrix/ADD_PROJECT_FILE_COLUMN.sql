@@ -1,2 +1,0 @@
-ALTER TABLE projects
-ADD COLUMN IF NOT EXISTS file_url TEXT;

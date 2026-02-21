@@ -17,7 +17,7 @@ build/
 
 # local env files
 .env*.local
-ak-qualrix/.env*.local
+APK-COMPASS/.env*.local
 # GitHub token for push script (never commit)
 .env.github
 
@@ -27,4 +27,4 @@ next-env.d.ts
 
 # logs
 *.log
-ak-qualrix/dev_server.log
+APK-COMPASS/dev_server.log
