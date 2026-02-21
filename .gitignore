@@ -2,6 +2,12 @@
 node_modules/
 .pnp
 .pnp.js
+.yarn/install-state.gz
+
+# testing
+/coverage
+/playwright-report/
+/test-results/
 
 # next.js
 .next/

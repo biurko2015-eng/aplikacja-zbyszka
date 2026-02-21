@@ -82,7 +82,7 @@ export default async function AdminCandidatesPage({
     // Pre-fetch match summaries from cache (match_results table) — NO expensive RPC calls
     // This uses already-computed results. If no cached results exist, show 0 (user can trigger scoring from detail page)
     const candidateIds = paginatedCandidates.map(c => c.id)
-    let matchCounts: Record<string, { total: number, high: number, medium: number, low: number }> = {}
+    const matchCounts: Record<string, { total: number, high: number, medium: number, low: number }> = {}
 
     if (candidateIds.length > 0) {
         try {
@@ -104,7 +104,7 @@ export default async function AdminCandidatesPage({
                     else if (sim >= 0.5) counts.low++
                 }
             }
-        } catch (err) {
+        } catch {
             // match_results table may not exist yet — graceful degradation
         }
     }

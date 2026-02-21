@@ -9,7 +9,7 @@ const WINDOW_MINUTES = 15
 export async function checkRateLimit(email: string): Promise<{ allowed: boolean; remaining: number }> {
     const supabase = createClient()
     const headerStore = headers()
-    const ip = headerStore.get('x-forwarded-for') || 'unknown'
+    void headerStore.get('x-forwarded-for') // reserved for future ip-based limit
 
     const timeWindow = new Date(Date.now() - WINDOW_MINUTES * 60 * 1000).toISOString()
 

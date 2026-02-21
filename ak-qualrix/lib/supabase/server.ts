@@ -45,8 +45,8 @@ export function createClient() {
 
     if (emergencyUser === 'zbigniew.twardowski@b2bnetwork.pl') {
         // Mock the auth object for the bypass user
-        const originalGetUser = client.auth.getUser.bind(client.auth)
-        client.auth.getUser = async (token?: string) => {
+        const _originalGetUser = client.auth.getUser.bind(client.auth)
+        client.auth.getUser = async (_token?: string) => {
             return {
                 data: {
                     user: {

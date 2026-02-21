@@ -79,7 +79,7 @@ export function KnowledgeBaseAdmin() {
             toastSuccess("Dokument dodany i zaindeksowany")
             setContent('')
             fetchDocuments()
-        } catch (_) {
+        } catch {
             toast.error("Błąd podczas dodawania dokumentu")
         } finally {
             setAdding(false)
@@ -100,7 +100,7 @@ export function KnowledgeBaseAdmin() {
             } else {
                 toast.error(result.error || 'Błąd uploadu')
             }
-        } catch (_) {
+        } catch {
             toast.error("Błąd podczas przetwarzania pliku")
         } finally {
             setUploading(false)
@@ -124,7 +124,7 @@ export function KnowledgeBaseAdmin() {
             await deleteKnowledgeDocument(id)
             toastSuccess("Dokument usunięty")
             fetchDocuments()
-        } catch (_) {
+        } catch {
             toast.error("Błąd podczas usuwania")
         }
     }

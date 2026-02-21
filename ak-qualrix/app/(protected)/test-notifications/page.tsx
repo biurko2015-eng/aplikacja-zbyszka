@@ -30,14 +30,14 @@ export default function TestNotificationsPage() {
 
         setLoading(true)
         try {
-            let params = {
+            const params = {
                 userId,
-                type: 'system_announcement' as any,
+                type: 'system_announcement' as const,
                 titlePl: 'Testowe powiadomienie',
                 titleEn: 'Test notification',
                 bodyPl: 'To jest testowe powiadomienie z panelu administracyjnego.',
                 bodyEn: 'This is a test notification from admin panel.',
-                priority: 'normal' as any
+                priority: 'normal' as const
             }
 
             switch (type) {

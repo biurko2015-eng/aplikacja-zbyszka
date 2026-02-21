@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button'
 import { AlertCircle } from 'lucide-react'
 
 export default function GlobalError({
-    error,
     reset,
 }: {
     error: Error & { digest?: string }

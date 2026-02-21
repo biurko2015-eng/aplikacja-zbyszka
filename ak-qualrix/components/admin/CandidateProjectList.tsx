@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState } from 'react'
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -35,7 +35,7 @@ export function CandidateProjectList({ matches, candidateId, candidateName = 'Ka
             } else {
                 setScoringResult('Wszystkie projekty mają już ocenę AI.')
             }
-        } catch (err) {
+        } catch {
             setScoringResult('Błąd podczas AI scoringu.')
         } finally {
             setIsScoring(false)

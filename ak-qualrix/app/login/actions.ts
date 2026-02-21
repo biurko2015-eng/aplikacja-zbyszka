@@ -4,9 +4,9 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
-import { checkRateLimit, logLoginAttempt } from '@/lib/auth/security'
+import { logLoginAttempt } from '@/lib/auth/security'
 import { logAudit } from '@/lib/actions/audit'
-import { sendMFACode, verifyMFACode } from '@/lib/mfa'
+import { verifyMFACode } from '@/lib/mfa'
 import { cookies } from 'next/headers'
 
 import { type SupabaseClient } from '@supabase/supabase-js'
@@ -258,7 +258,7 @@ export async function signup(formData: FormData) {
 
     const supabase = createClient()
 
-    const { error, data } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {

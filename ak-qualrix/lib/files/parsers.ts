@@ -1,16 +1,16 @@
-// @ts-ignore
+// @ts-expect-error pdf2json has no types
 import PDFParser from 'pdf2json'
 import mammoth from 'mammoth'
 
 export async function parseBuffer(buffer: Buffer, type: string, fileName: string = ''): Promise<string> {
     if (type === 'application/pdf') {
-        // @ts-ignore
+        // @ts-expect-error PDFParser constructor
         const parser = new PDFParser(null, 1) // 1 = text only
 
         return new Promise((resolve, reject) => {
-            parser.on('pdfParser_dataError', (errData: any) => {
+            parser.on('pdfParser_dataError', (errData: unknown) => {
                 console.error('PDF Parser Error:', errData)
-                reject(new Error(errData.parserError))
+                reject(new Error((errData as { parserError?: string })?.parserError ?? 'PDF parse error'))
             })
             parser.on('pdfParser_dataReady', () => {
                 const text = parser.getRawTextContent()

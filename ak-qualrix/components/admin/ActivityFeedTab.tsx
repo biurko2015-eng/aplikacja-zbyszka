@@ -60,7 +60,7 @@ export function ActivityFeedTab({
                     {activities.length === 0 ? (
                         <p className="text-sm text-muted-foreground text-center py-4">Brak ostatniej aktywności</p>
                     ) : (
-                        activities.slice(0, 8).map((activity, idx) => (
+                        activities.slice(0, 8).map((activity) => (
                             <div key={activity.id} className="flex items-start gap-3 py-3 border-b border-white/5 last:border-0">
                                 <div className="mt-1.5 flex-shrink-0">
                                     <div className={`w-2.5 h-2.5 rounded-full ${

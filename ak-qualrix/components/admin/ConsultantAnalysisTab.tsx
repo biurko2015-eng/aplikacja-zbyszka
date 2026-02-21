@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useMemo } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import type { ConsultantAnalysis } from '@/lib/actions/admin-dashboard'
@@ -121,7 +121,7 @@ export function ConsultantAnalysisTab({ consultants }: ConsultantAnalysisTabProp
                                 </tr>
                             </thead>
                             <tbody>
-                                {filtered.slice(0, 20).map((c, idx) => {
+                                {filtered.slice(0, 20).map((c) => {
                                     const status = statusConfig[c.current_status] || statusConfig['bench']
                                     const tier = tierConfig[c.loyalty_tier.toLowerCase()] || tierConfig['bronze']
 

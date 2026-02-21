@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Users, TrendingUp, Clock, Briefcase, AlertTriangle, UserPlus, FileWarning } from "lucide-react"
 import { RecruiterEfficiencyTab } from './RecruiterEfficiencyTab'
 import { DeliveryLeadEfficiencyTab } from './DeliveryLeadEfficiencyTab'

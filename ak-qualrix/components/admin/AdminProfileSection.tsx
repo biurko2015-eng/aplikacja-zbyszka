@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Shield, Star, Settings, Clock, Users, Briefcase, TrendingUp, Award } from "lucide-react"
+import { Shield, Star, Settings, Users, Briefcase, TrendingUp, Award } from "lucide-react"
 import Link from 'next/link'
 import type { AdminDashboardData } from '@/lib/actions/admin-dashboard'
 import { updateProfileFull } from '@/lib/actions/matching'
@@ -33,6 +33,7 @@ function getInitials(name: string): string {
 }
 
 export function AdminProfileSection({ userProfile, isSuperAdmin = false, dashboardData }: AdminProfileSectionProps) {
+    const router = useRouter()
     const user = userProfile
     const data = dashboardData
 
@@ -50,11 +51,11 @@ export function AdminProfileSection({ userProfile, isSuperAdmin = false, dashboa
             })
             setIsDirty(false)
             toastSuccess('Dane profilowe zostały zaktualizowane!')
+            router.refresh()
         } catch (error: any) {
             console.error('Failed to update admin profile:', error)
             toast.error('Nie udało się zapisać zmian: ' + (error.message || 'Nieznany błąd'))
         } finally {
-            setIsSaving(true)
             setIsSaving(false)
         }
     }

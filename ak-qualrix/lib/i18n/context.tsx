@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext } from 'react'
 import { dictionary, Locale } from './dictionary'
 
 interface LanguageContextType {

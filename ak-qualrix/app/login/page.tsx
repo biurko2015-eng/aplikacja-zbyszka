@@ -41,7 +41,8 @@ export default function LoginPage() {
     // Success overlay
     const [showSuccessOverlay, setShowSuccessOverlay] = useState(false)
 
-    // MFA State
+    // MFA State (setMfaUserId used when login returns mfa_required)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- setter kept for MFA flow
     const [mfaUserId, setMfaUserId] = useState<string | null>(null)
     const [mfaCode, setMfaCode] = useState('')
 

@@ -6,16 +6,12 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
-    PlayCircle,
-    BookOpen,
-    GraduationCap,
     AlertTriangle,
     CheckCircle2,
     Info,
     Loader2,
     Target,
     TrendingUp,
-    Zap,
     Brain,
     Rocket,
     Map,
@@ -28,7 +24,6 @@ import {
     FileText,
     ThumbsUp,
     ThumbsDown,
-    Calendar,
     RefreshCw,
     Users,
     Search,
