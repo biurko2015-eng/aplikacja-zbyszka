@@ -3,25 +3,26 @@ import { getUnifiedDashboardData } from '@/lib/actions/unified-dashboard'
 import { UnifiedDashboardClient } from '@/components/dashboard/UnifiedDashboardClient'
 
 export default async function HomePage() {
-    // ─── PERF: Single call — getUnifiedDashboardData handles auth + profile + role ───
-    const data = await getUnifiedDashboardData()
-
-    if (!data.success) {
+    try {
+        const data = await getUnifiedDashboardData()
+        if (!data.success) {
+            redirect('/login')
+        }
+        return (
+            <UnifiedDashboardClient
+                role={data.role || 'consultant'}
+                centralaSubRole={data.centralaSubRole ?? null}
+                userProfile={data.userProfile ?? null}
+                centralaStats={data.centralaStats ?? null}
+                consultantsList={data.consultantsList ?? null}
+                consultantDashboard={data.consultantDashboard ?? null}
+                adminKpi={data.adminKpi ?? null}
+                recruiterInfo={data.recruiterInfo ?? null}
+                adminDashboardData={data.adminDashboardData ?? null}
+                isSuperAdmin={data.isSuperAdmin ?? false}
+            />
+        )
+    } catch {
         redirect('/login')
     }
-
-    return (
-        <UnifiedDashboardClient
-            role={data.role || 'consultant'}
-            centralaSubRole={data.centralaSubRole}
-            userProfile={data.userProfile}
-            centralaStats={data.centralaStats}
-            consultantsList={data.consultantsList}
-            consultantDashboard={data.consultantDashboard}
-            adminKpi={data.adminKpi}
-            recruiterInfo={data.recruiterInfo}
-            adminDashboardData={data.adminDashboardData}
-            isSuperAdmin={data.isSuperAdmin}
-        />
-    )
 }

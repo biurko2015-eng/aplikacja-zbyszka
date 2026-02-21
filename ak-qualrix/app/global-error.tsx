@@ -1,31 +1,23 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
-import { AlertCircle } from 'lucide-react'
+import { useEffect } from 'react'
 
 export default function GlobalError({
+    error,
     reset,
 }: {
     error: Error & { digest?: string }
     reset: () => void
 }) {
+    useEffect(() => {
+        console.error('[GlobalError]', error)
+        window.location.href = '/login'
+    }, [error])
+
     return (
-        <html>
-            <body>
-                <div className="flex h-screen flex-col items-center justify-center gap-4 bg-background p-4">
-                    <div className="flex flex-col items-center gap-2 text-center">
-                        <div className="rounded-full bg-destructive/10 p-4">
-                            <AlertCircle className="h-8 w-8 text-destructive" />
-                        </div>
-                        <h2 className="text-2xl font-bold tracking-tight">Krytyczny błąd systemu</h2>
-                        <p className="text-muted-foreground">
-                            Wystąpił błąd, którego nie można obsłużyć.
-                        </p>
-                    </div>
-                    <Button onClick={() => reset()} variant="default">
-                        Spróbuj ponownie
-                    </Button>
-                </div>
+        <html lang="pl">
+            <body style={{ margin: 0, fontFamily: 'system-ui', background: '#1D121B', color: '#F3EEF2', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+                <p style={{ margin: 0 }}>Przekierowuję do logowania…</p>
             </body>
         </html>
     )

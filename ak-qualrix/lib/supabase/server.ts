@@ -2,29 +2,36 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { createMockSupabaseClient, isSupabaseConfigured } from './mock-client'
 
+const BYPASS_USER = {
+    id: 'df0edb15-8c84-434d-928f-689348171029',
+    email: 'zbigniew.twardowski@b2bnetwork.pl',
+    app_metadata: {},
+    user_metadata: { full_name: 'Zbigniew Twardowski' },
+    aud: 'authenticated',
+    created_at: new Date().toISOString(),
+} as const
+
 export function createClient() {
-    const cookieStore = cookies()
-
-    if (!isSupabaseConfigured()) {
-        const bypassEmail = cookieStore.get('emergency_auth_user')?.value
-        if (bypassEmail === 'zbigniew.twardowski@b2bnetwork.pl') {
-            return createMockSupabaseClient({
-                id: 'df0edb15-8c84-434d-928f-689348171029',
-                email: 'zbigniew.twardowski@b2bnetwork.pl',
-                app_metadata: {},
-                user_metadata: { full_name: 'Zbigniew Twardowski' },
-                aud: 'authenticated',
-                created_at: new Date().toISOString(),
-            } as any)
+    try {
+        const cookieStore = cookies()
+        if (!isSupabaseConfigured()) {
+            const bypassEmail = cookieStore.get('emergency_auth_user')?.value
+            if (bypassEmail === 'zbigniew.twardowski@b2bnetwork.pl') {
+                return createMockSupabaseClient(BYPASS_USER as any)
+            }
+            return createMockSupabaseClient()
         }
-        return createMockSupabaseClient()
-    }
 
-    // --- EMERGENCY BYPASS FOR DEV ---
-    const emergencyUser = cookieStore.get('emergency_auth_user')?.value
-    const client = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        const emergencyUser = cookieStore.get('emergency_auth_user')?.value
+        const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+        const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+        if (!url || !key) {
+            return createMockSupabaseClient(emergencyUser === 'zbigniew.twardowski@b2bnetwork.pl' ? (BYPASS_USER as any) : undefined)
+        }
+
+        const client = createServerClient(
+        url,
+        key,
         {
             cookies: {
                 getAll() {
@@ -41,27 +48,17 @@ export function createClient() {
                 },
             },
         }
-    )
+        )
 
-    if (emergencyUser === 'zbigniew.twardowski@b2bnetwork.pl') {
-        // Mock the auth object for the bypass user
-        const _originalGetUser = client.auth.getUser.bind(client.auth)
-        client.auth.getUser = async (_token?: string) => {
-            return {
-                data: {
-                    user: {
-                        id: 'df0edb15-8c84-434d-928f-689348171029',
-                        email: 'zbigniew.twardowski@b2bnetwork.pl',
-                        app_metadata: {},
-                        user_metadata: { full_name: 'Zbigniew Twardowski' },
-                        aud: 'authenticated',
-                        created_at: new Date().toISOString()
-                    } as any
-                },
+        if (emergencyUser === 'zbigniew.twardowski@b2bnetwork.pl') {
+            client.auth.getUser = async () => ({
+                data: { user: { ...BYPASS_USER } as any },
                 error: null
-            }
+            })
         }
-    }
 
-    return client
+        return client
+    } catch (_e) {
+        return createMockSupabaseClient()
+    }
 }

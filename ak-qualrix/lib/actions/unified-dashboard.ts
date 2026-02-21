@@ -49,19 +49,18 @@ async function getAdminKpiStats(): Promise<AdminKpiStats> {
 }
 
 export async function getUnifiedDashboardData(roleHint?: string) {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    try {
+        const supabase = createClient()
+        const { data: { user }, error: authError } = await supabase.auth.getUser()
+        if (authError || !user) {
+            return { success: false, error: 'Not authenticated' }
+        }
 
-    if (!user) {
-        return { success: false, error: 'Not authenticated' }
-    }
-
-    // ─── PERF: Single profile query — determines role + provides user data ────
-    const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single()
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single()
 
     const baseRole = roleHint || profile?.role || 'consultant'
     const role = isSuperAdmin(user.email) ? 'administrator' : baseRole
@@ -134,17 +133,20 @@ export async function getUnifiedDashboardData(roleHint?: string) {
         }
     }
 
-    return {
-        success: true,
-        userProfile,
-        role,
-        centralaSubRole,
-        centralaStats,
-        consultantsList,
-        consultantDashboard,
-        adminKpi,
-        recruiterInfo,
-        adminDashboardData,
-        isSuperAdmin: isSuperAdminUser,
+        return {
+            success: true,
+            userProfile,
+            role,
+            centralaSubRole,
+            centralaStats,
+            consultantsList,
+            consultantDashboard,
+            adminKpi,
+            recruiterInfo,
+            adminDashboardData,
+            isSuperAdmin: isSuperAdminUser,
+        }
+    } catch (_e) {
+        return { success: false, error: 'Load failed' }
     }
 }
