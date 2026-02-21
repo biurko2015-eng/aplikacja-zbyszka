@@ -109,12 +109,28 @@ export async function updateProfileFull(data: ProfileUpdateData) {
 
     console.log('[ProfileUpdate] Updating profile for user:', user.id, updates)
 
-    const { error } = await supabase
+    let { error } = await supabase
         .from('profiles')
         .update(updates)
         .eq('id', user.id)
 
+    // Fallback: jeśli błąd sugeruje brak kolumny (np. phone), ponów update bez tego pola
     if (error) {
+        const msg = (error as { message?: string }).message?.toLowerCase() ?? ''
+        const looksLikeMissingColumn = msg.includes('column') && (msg.includes('phone') || msg.includes('does not exist') || msg.includes('undefined'))
+        if (looksLikeMissingColumn && updates.phone !== undefined) {
+            const { phone: _p, ...updatesWithoutPhone } = updates
+            console.warn('[ProfileUpdate] Retrying without phone (column may be missing):', _p)
+            const retry = await supabase.from('profiles').update(updatesWithoutPhone).eq('id', user.id)
+            if (retry.error) {
+                console.error('[ProfileUpdate] Error updating profiles table:', retry.error)
+                throw new Error(`Profile update failed: ${retry.error.message}`)
+            }
+            revalidatePath('/home')
+            revalidatePath('/profile')
+            revalidatePath('/more')
+            return { success: true, warning: 'Imię i nazwisko zapisane. Numer telefonu nie został zapisany — w bazie brakuje kolumny "phone". Poproś administratora o wykonanie migracji.' }
+        }
         console.error('[ProfileUpdate] Error updating profiles table:', error)
         throw new Error(`Profile update failed: ${error.message}`)
     }

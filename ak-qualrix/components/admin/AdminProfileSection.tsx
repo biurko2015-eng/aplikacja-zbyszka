@@ -47,12 +47,16 @@ export function AdminProfileSection({ userProfile, isSuperAdmin = false, dashboa
     const handleSave = async () => {
         setIsSaving(true)
         try {
-            await updateProfileFull({
+            const result = await updateProfileFull({
                 full_name: fullName,
                 phone: phone
             })
             setIsDirty(false)
-            toastSuccess('Dane profilowe zostały zaktualizowane!')
+            if (result?.warning) {
+                toast.warning(result.warning)
+            } else {
+                toastSuccess('Dane profilowe zostały zaktualizowane!')
+            }
             router.refresh()
         } catch (error: any) {
             console.error('Failed to update admin profile:', error)
