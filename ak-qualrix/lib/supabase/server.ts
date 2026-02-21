@@ -1,8 +1,13 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { createMockSupabaseClient, isSupabaseConfigured } from './mock-client'
 
 export function createClient() {
     const cookieStore = cookies()
+
+    if (!isSupabaseConfigured()) {
+        return createMockSupabaseClient()
+    }
 
     // --- EMERGENCY BYPASS FOR DEV ---
     const emergencyUser = cookieStore.get('emergency_auth_user')?.value
