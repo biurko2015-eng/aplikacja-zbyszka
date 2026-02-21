@@ -155,10 +155,15 @@ export function createMockSupabaseClient(overrideUser?: typeof BYPASS_USER | nul
         createSignedUrl: async () => ({ data: null, error: { message: 'Supabase not configured' } }),
       }),
     },
-    channel: () => ({
-      on: () => ({ subscribe: () => ({ unsubscribe: () => {} }) }),
-      subscribe: () => ({ unsubscribe: () => {} }),
-    }),
+    channel: (name?: string) => {
+      const ch = {
+        on: () => ch,
+        subscribe: () => ({ unsubscribe: () => {} }),
+        unsubscribe: () => {},
+      }
+      return ch
+    },
+    removeChannel: (_channel: unknown) => Promise.resolve(),
   } as unknown as import('@supabase/supabase-js').SupabaseClient
 }
 
