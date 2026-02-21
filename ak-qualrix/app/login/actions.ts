@@ -41,11 +41,26 @@ function friendlyLoginError(raw: string): string {
     return `Wystąpił problem z logowaniem. Spróbuj ponownie za chwilę.`
 }
 
-function friendlySignupError(raw: string): string {
+function friendlySignupError(raw: string, err?: { code?: string }): string {
     const msg = raw.toLowerCase()
-    if (msg.includes('user already registered')) {
+    const code = err?.code?.toLowerCase() ?? ''
+
+    // Konto już istnieje — wszystkie warianty z Supabase / GoTrue
+    const alreadyExists =
+        code === 'user_already_exists' ||
+        code.includes('already_exists') ||
+        msg.includes('user already registered') ||
+        msg.includes('already registered') ||
+        msg.includes('email already exists') ||
+        msg.includes('already exists') ||
+        msg.includes('user already exists') ||
+        msg.includes('duplicate') ||
+        msg.includes('zarejestrowany') ||
+        msg.includes('już istnieje')
+    if (alreadyExists) {
         return 'Konto z tym adresem email już istnieje. Spróbuj się zalogować.'
     }
+
     if (msg.includes('password') && msg.includes('weak')) {
         return 'Hasło jest za słabe. Użyj min. 10 znaków, wielkiej litery i cyfry.'
     }
@@ -272,12 +287,14 @@ export async function signup(formData: FormData) {
     })
 
     if (error) {
-        console.error('[SIGNUP_DEBUG] Error:', error)
-        return { error: friendlySignupError(error.message) }
+        // Log pełnej odpowiedzi, żeby w razie problemu widzieć dokładny komunikat/code z Supabase
+        console.error('[SIGNUP_DEBUG]', { message: error.message, code: (error as { code?: string }).code })
+        return { error: friendlySignupError(error.message, error as { code?: string }) }
     }
 
     // Supabase przy włączonym "Confirm email" często nie zwraca błędu, tylko sukces z pustą tablicą identities
-    if (data?.user && (!data.user.identities || data.user.identities.length === 0)) {
+    const identities = data?.user?.identities
+    if (data?.user && (identities == null || (Array.isArray(identities) && identities.length === 0))) {
         return { error: 'Konto z tym adresem email już istnieje. Spróbuj się zalogować.' }
     }
 
