@@ -6,7 +6,7 @@ import { getCentralaStats, getConsultantsList } from '@/lib/actions/centrala'
 import { getRecentNotifications } from '@/lib/actions/notifications'
 import { getMyRecruiter, type MyRecruiterInfo } from '@/lib/actions/centrala-management'
 import { getAdminDashboardData, type AdminDashboardData } from '@/lib/actions/admin-dashboard'
-import { SUPER_ADMIN_EMAILS } from '@/lib/auth/super-admins'
+import { SUPER_ADMIN_EMAILS, isSuperAdmin } from '@/lib/auth/super-admins'
 
 export interface AdminKpiStats {
     totalUsers: number
@@ -63,10 +63,10 @@ export async function getUnifiedDashboardData(roleHint?: string) {
         .eq('id', user.id)
         .single()
 
-    const role = roleHint || profile?.role || 'consultant'
+    const baseRole = roleHint || profile?.role || 'consultant'
+    const role = isSuperAdmin(user.email) ? 'administrator' : baseRole
 
-    // ─── Super Admin check ──────────────────────────────────────────────────
-    const isSuperAdmin = SUPER_ADMIN_EMAILS.includes(
+    const isSuperAdminUser = SUPER_ADMIN_EMAILS.includes(
         (user.email || '').toLowerCase() as typeof SUPER_ADMIN_EMAILS[number]
     )
 
@@ -106,7 +106,7 @@ export async function getUnifiedDashboardData(roleHint?: string) {
         email: user.email!,
         created_at: user.created_at || new Date().toISOString(),
         last_sign_in_at: user.last_sign_in_at,
-        role: role
+        role: role as 'consultant' | 'admin' | 'centrala' | 'administrator'
     }
 
     // ─── Unpack role-specific data ────────────────────────────────────────────
@@ -145,6 +145,6 @@ export async function getUnifiedDashboardData(roleHint?: string) {
         adminKpi,
         recruiterInfo,
         adminDashboardData,
-        isSuperAdmin,
+        isSuperAdmin: isSuperAdminUser,
     }
 }
