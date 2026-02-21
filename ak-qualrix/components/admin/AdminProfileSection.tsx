@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Shield, Star, Settings, Users, Briefcase, TrendingUp, Award } from "lucide-react"
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation' // wymagany dla router.refresh() po zapisie profilu
 import type { AdminDashboardData } from '@/lib/actions/admin-dashboard'
 import { updateProfileFull } from '@/lib/actions/matching'
 import { toast } from 'sonner'
