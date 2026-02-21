@@ -1,0 +1,28 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# next.js
+.next/
+out/
+
+# production
+build/
+
+# misc
+.DS_Store
+*.pem
+*.tmp
+
+# local env files
+.env*.local
+ak-qualrix/.env*.local
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# logs
+*.log
+ak-qualrix/dev_server.log
