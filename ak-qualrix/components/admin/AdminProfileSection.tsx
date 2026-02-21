@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Shield, Star, Settings, Users, Briefcase, TrendingUp, Award } from "lucide-react"
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import type { AdminDashboardData } from '@/lib/actions/admin-dashboard'
 import { updateProfileFull } from '@/lib/actions/matching'
 import { toast } from 'sonner'
@@ -28,17 +29,18 @@ interface AdminProfileSectionProps {
     dashboardData?: AdminDashboardData | null
 }
 
-function getInitials(name: string): string {
+function getInitials(name?: string | null): string {
+    if (!name || typeof name !== 'string') return '?'
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
 }
 
 export function AdminProfileSection({ userProfile, isSuperAdmin = false, dashboardData }: AdminProfileSectionProps) {
     const router = useRouter()
-    const user = userProfile
+    const user = userProfile ?? {}
     const data = dashboardData
 
-    const [fullName, setFullName] = useState(user.full_name || '')
-    const [phone, setPhone] = useState(user.phone || '')
+    const [fullName, setFullName] = useState(user?.full_name || '')
+    const [phone, setPhone] = useState(user?.phone || '')
     const [isSaving, setIsSaving] = useState(false)
     const [isDirty, setIsDirty] = useState(false)
 
@@ -62,12 +64,12 @@ export function AdminProfileSection({ userProfile, isSuperAdmin = false, dashboa
 
     const onNameChange = (val: string) => {
         setFullName(val)
-        setIsDirty(val !== (user.full_name || ''))
+        setIsDirty(val !== (user?.full_name || ''))
     }
 
     const onPhoneChange = (val: string) => {
         setPhone(val)
-        setIsDirty(val !== (user.phone || ''))
+        setIsDirty(val !== (user?.phone || ''))
     }
 
     return (
