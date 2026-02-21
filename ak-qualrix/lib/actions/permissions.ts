@@ -11,6 +11,22 @@ import type {
 } from '@/lib/types/permissions'
 import { DEFAULT_PERMISSIONS } from '@/lib/types/permissions'
 
+const VALID_ROLES: PermissionRole[] = ['recruiter', 'delivery_lead', 'finance', 'consultant']
+const VALID_VALUES: PermissionValue[] = ['true', 'false', 'portfolio', 'full', 'readonly']
+const VALID_FEATURES: PermissionFeature[] = [
+    'dashboard', 'projects', 'candidates', 'service_hub', 'messages', 'documents',
+    'loyalty', 'development', 'import', 'referrals', 'ai_assistant', 'settings',
+]
+function isValidRole(r: unknown): r is PermissionRole {
+    return typeof r === 'string' && VALID_ROLES.includes(r as PermissionRole)
+}
+function isValidFeature(f: unknown): f is PermissionFeature {
+    return typeof f === 'string' && VALID_FEATURES.includes(f as PermissionFeature)
+}
+function isValidValue(v: unknown): v is PermissionValue {
+    return typeof v === 'string' && VALID_VALUES.includes(v as PermissionValue)
+}
+
 // ─── Admin helper ─────────────────────────────────────────────────────────────
 
 async function requireAdmin() {
@@ -55,10 +71,9 @@ async function fetchPermissionsFromDB(): Promise<PermissionsMap> {
     }
 
     for (const row of data) {
-        const role = row.role as PermissionRole
-        const feature = row.feature as PermissionFeature
-        if (map[role] && feature in map[role]) {
-            map[role][feature] = row.value as PermissionValue
+        if (!isValidRole(row.role) || !isValidFeature(row.feature) || !isValidValue(row.value)) continue
+        if (map[row.role] && row.feature in map[row.role]) {
+            map[row.role][row.feature] = row.value
         }
     }
 

@@ -144,7 +144,8 @@ export function PermissionsTable({ initialPermissions }: PermissionsTableProps) 
 
                                 {/* Editable role columns */}
                                 {ROLES.map(role => {
-                                    const currentValue = permissions[role.key][feature.key]
+                                    const rawValue = permissions[role.key][feature.key]
+                                    const currentValue = (VALUE_CONFIG[rawValue] ? rawValue : feature.allowedValues[0]) as PermissionValue
                                     const conf = VALUE_CONFIG[currentValue]
                                     const changed = dirty.some(d => d.role === role.key && d.feature === feature.key)
 
