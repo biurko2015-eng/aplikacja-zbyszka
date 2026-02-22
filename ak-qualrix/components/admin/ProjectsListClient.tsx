@@ -7,6 +7,7 @@ import { RefreshCw, AlertCircle, Trash2, Star } from 'lucide-react'
 import { deleteProject, deleteProjects } from '@/lib/actions/projects'
 import { getMyFavoriteProjectIds } from '@/lib/actions/favorites'
 import { cn } from '@/lib/utils'
+import { useConfirm } from '@/components/shared/ConfirmDialog'
 import { Checkbox } from "@/components/ui/checkbox"
 import { useEffect, useState, useCallback } from 'react'
 import { Project } from '@/lib/types'
@@ -30,6 +31,7 @@ export function ProjectsListClient({ isAdmin = true }: ProjectsListClientProps) 
     const [showOnlyFavorites, setShowOnlyFavorites] = useState(false)
     const [summaries, setSummaries] = useState<Record<string, any[]>>({})
     const pageSize = 10
+    const [confirm, ConfirmUI] = useConfirm()
 
     const searchParams = useSearchParams()
     const query = searchParams.get('q')?.toLowerCase() || ''
@@ -69,7 +71,13 @@ export function ProjectsListClient({ isAdmin = true }: ProjectsListClientProps) 
 
     // ... handleDelete, toggleSelect, handleBulkDelete unchanged ...
     const handleDelete = async (id: string) => {
-        if (!confirm('Czy na pewno chcesz usunąć ten projekt?')) return
+        const ok = await confirm({
+            title: 'Usuń projekt',
+            description: 'Czy na pewno chcesz usunąć ten projekt?',
+            confirmLabel: 'Usuń',
+            variant: 'destructive',
+        })
+        if (!ok) return
         try {
             await deleteProject(id)
             setProjects(projects.filter(p => p.id !== id))
@@ -91,7 +99,13 @@ export function ProjectsListClient({ isAdmin = true }: ProjectsListClientProps) 
 
     const handleBulkDelete = async () => {
         if (selectedProjects.size === 0) return
-        if (!confirm(`Usunąć ${selectedProjects.size} zaznaczonych projektów?`)) return
+        const ok = await confirm({
+            title: 'Usuń projekty',
+            description: `Czy na pewno chcesz usunąć ${selectedProjects.size} zaznaczonych projektów?`,
+            confirmLabel: 'Usuń wszystkie',
+            variant: 'destructive',
+        })
+        if (!ok) return
         try {
             setLoading(true)
             await deleteProjects(Array.from(selectedProjects))
@@ -302,6 +316,8 @@ export function ProjectsListClient({ isAdmin = true }: ProjectsListClientProps) 
                     </Button>
                 </div>
             )}
+
+            <ConfirmUI />
         </div>
     )
 }

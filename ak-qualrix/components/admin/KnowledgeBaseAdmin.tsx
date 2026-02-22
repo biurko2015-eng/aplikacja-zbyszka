@@ -26,6 +26,7 @@ import { addKnowledgeDocument, getKnowledgeHistory, deleteKnowledgeDocument, upl
 import { toast } from 'sonner'
 import { toastSuccess } from '@/lib/toast-success'
 import { cn } from '@/lib/utils'
+import { useConfirm } from '@/components/shared/ConfirmDialog'
 
 const CATEGORIES = [
     { value: 'umowy', label: 'Umowy i Procedury' },
@@ -40,6 +41,7 @@ export function KnowledgeBaseAdmin() {
     const [documents, setDocuments] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [adding, setAdding] = useState(false)
+    const [confirm, ConfirmUI] = useConfirm()
     const [content, setContent] = useState('')
     const [category, setCategory] = useState('ogolne')
     const [searchQuery, setSearchQuery] = useState('')
@@ -119,7 +121,13 @@ export function KnowledgeBaseAdmin() {
     }
 
     async function handleDelete(id: string) {
-        if (!confirm("Czy na pewno chcesz usunąć ten dokument?")) return
+        const ok = await confirm({
+            title: 'Usuń dokument',
+            description: 'Czy na pewno chcesz usunąć ten dokument z bazy wiedzy?',
+            confirmLabel: 'Usuń',
+            variant: 'destructive',
+        })
+        if (!ok) return
         try {
             await deleteKnowledgeDocument(id)
             toastSuccess("Dokument usunięty")
@@ -370,6 +378,8 @@ export function KnowledgeBaseAdmin() {
                     )}
                 </CardContent>
             </Card>
+
+            <ConfirmUI />
         </div>
     )
 }

@@ -7,6 +7,7 @@ import { LayoutSwitcher } from '@/components/profile/LayoutSwitcher'
 import { ProfileGridLayout } from '@/components/profile/layouts/ProfileGridLayout'
 import { ProfileTabsLayout } from '@/components/profile/layouts/ProfileTabsLayout'
 import { ProfileFeedLayout } from '@/components/profile/layouts/ProfileFeedLayout'
+import { useConfirm } from '@/components/shared/ConfirmDialog'
 
 export function ConsultantProfileView() {
     // State
@@ -27,6 +28,7 @@ export function ConsultantProfileView() {
     const [maxMonthlyHours, setMaxMonthlyHours] = useState<number>(160)
     const [loading, setLoading] = useState(false)
     const [avatarLoading, setAvatarLoading] = useState(false)
+    const [confirm, ConfirmUI] = useConfirm()
     const [currentCvUrl, setCurrentCvUrl] = useState<string | null>(null)
     const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
     const [coverLetter, setCoverLetter] = useState('')
@@ -129,7 +131,12 @@ export function ConsultantProfileView() {
 
     // Handlers
     const handleSaveProfile = async () => {
-        if (!confirm('Czy na pewno chcesz zapisać zmiany w profilu?')) return
+        const ok = await confirm({
+            title: 'Zapisz profil',
+            description: 'Czy na pewno chcesz zapisać zmiany w profilu?',
+            confirmLabel: 'Zapisz',
+        })
+        if (!ok) return
 
         setLoading(true)
         try {
@@ -203,9 +210,12 @@ export function ConsultantProfileView() {
         }
 
         if (currentCvUrl && currentCvUrl !== 'uploaded') {
-            if (!confirm('Wgranie nowego CV nadpisze poprzednie. Czy chcesz kontynuować?')) {
-                return
-            }
+            const ok2 = await confirm({
+                title: 'Nadpisanie CV',
+                description: 'Wgranie nowego CV nadpisze poprzednie. Czy chcesz kontynuować?',
+                confirmLabel: 'Nadpisz',
+            })
+            if (!ok2) return
         }
 
         setLoading(true)
@@ -337,6 +347,8 @@ export function ConsultantProfileView() {
             {layout === 'grid' && <ProfileGridLayout {...layoutProps} />}
             {layout === 'tabs' && <ProfileTabsLayout {...layoutProps} />}
             {layout === 'feed' && <ProfileFeedLayout {...layoutProps} />}
+
+            <ConfirmUI />
         </div>
     )
 }

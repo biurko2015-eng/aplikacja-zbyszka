@@ -5,13 +5,21 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { cleanDuplicateCandidates } from '@/lib/actions/maintenance'
 import { Trash2, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
+import { useConfirm } from '@/components/shared/ConfirmDialog'
 
 export default function AdminSettingsPage() {
     const [cleaning, setCleaning] = useState(false)
     const [result, setResult] = useState<{ count: number, message: string } | null>(null)
+    const [confirm, ConfirmUI] = useConfirm()
 
     const handleCleanup = async () => {
-        if (!confirm('Czy na pewno chcesz usunąć zduplikowanych kandydatów? Ta operacja jest nieodwracalna.')) return
+        const ok = await confirm({
+            title: 'Czyszczenie duplikatów',
+            description: 'Czy na pewno chcesz usunąć zduplikowanych kandydatów? Ta operacja jest nieodwracalna.',
+            confirmLabel: 'Usuń duplikaty',
+            variant: 'destructive',
+        })
+        if (!ok) return
 
         setCleaning(true)
         setResult(null)
@@ -78,6 +86,8 @@ export default function AdminSettingsPage() {
                     </CardContent>
                 </Card>
             </div>
+
+            <ConfirmUI />
         </div>
     )
 }

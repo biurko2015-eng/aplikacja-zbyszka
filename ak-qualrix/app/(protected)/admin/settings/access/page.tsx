@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Trash2, ShieldAlert, Loader2, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { toastSuccess } from '@/lib/toast-success'
+import { useConfirm } from '@/components/shared/ConfirmDialog'
 
 export default function AccessManagementPage() {
     const [email, setEmail] = useState('')
@@ -17,6 +18,7 @@ export default function AccessManagementPage() {
     const [loading, setLoading] = useState(true)
     const [submitting, setSubmitting] = useState(false)
     const [isAdmin, setIsAdmin] = useState(false)
+    const [confirm, ConfirmUI] = useConfirm()
 
     const supabase = createClient()
 
@@ -88,7 +90,13 @@ export default function AccessManagementPage() {
     }
 
     async function handleRemove(id: string) {
-        if (!confirm('Czy na pewno usunąć ten adres? Użytkownik straci uprawnienia po ponownym logowaniu.')) return
+        const ok = await confirm({
+            title: 'Usuń dostęp',
+            description: 'Czy na pewno usunąć ten adres? Użytkownik straci uprawnienia po ponownym logowaniu.',
+            confirmLabel: 'Usuń',
+            variant: 'destructive',
+        })
+        if (!ok) return
 
         const { error } = await supabase.from('centrala_access_list').delete().eq('id', id)
         if (error) {
@@ -196,6 +204,8 @@ export default function AccessManagementPage() {
                     )}
                 </CardContent>
             </Card>
+
+            <ConfirmUI />
         </div>
     )
 }

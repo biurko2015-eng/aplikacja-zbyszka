@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useConfirm } from '@/components/shared/ConfirmDialog'
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -71,6 +72,7 @@ export function UnifiedDocumentManager({ ownerId, isAdminView = false, allowedCa
     const [category, setCategory] = useState<DocumentCategory>('other')
     const [changeSummary, setChangeSummary] = useState('')
     const [submitting, setSubmitting] = useState(false)
+    const [confirm, ConfirmUI] = useConfirm()
 
     // Memoize category dependency to avoid infinite loops if array literal passed
     const categoriesDep = allowedCategories ? allowedCategories.join(',') : ''
@@ -141,7 +143,12 @@ export function UnifiedDocumentManager({ ownerId, isAdminView = false, allowedCa
     }
 
     const handleArchive = async (id: string) => {
-        if (!confirm('Czy na pewno chcesz zarchiwizować ten dokument?')) return
+        const ok = await confirm({
+            title: 'Archiwizuj dokument',
+            description: 'Czy na pewno chcesz zarchiwizować ten dokument?',
+            confirmLabel: 'Archiwizuj',
+        })
+        if (!ok) return
         try {
             await archiveDocument(id)
             await loadDocuments()
@@ -151,7 +158,13 @@ export function UnifiedDocumentManager({ ownerId, isAdminView = false, allowedCa
     }
 
     const handleDelete = async (id: string) => {
-        if (!confirm('Czy na pewno chcesz TRWALE usunąć ten dokument? Tej operacji nie można cofnąć.')) return
+        const ok = await confirm({
+            title: 'Trwałe usunięcie',
+            description: 'Czy na pewno chcesz TRWALE usunąć ten dokument? Tej operacji nie można cofnąć.',
+            confirmLabel: 'Usuń trwale',
+            variant: 'destructive',
+        })
+        if (!ok) return
         try {
             await deleteDocument(id)
             await loadDocuments()
@@ -512,6 +525,8 @@ export function UnifiedDocumentManager({ ownerId, isAdminView = false, allowedCa
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            <ConfirmUI />
         </div>
     )
 }

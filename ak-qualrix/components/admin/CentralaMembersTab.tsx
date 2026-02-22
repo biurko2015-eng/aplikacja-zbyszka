@@ -14,6 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Trash2, Plus, Loader2, Pencil, Users, Briefcase, Calculator, ShieldCheck, ArrowRight } from 'lucide-react'
 import { toast } from 'sonner'
 import { toastSuccess } from '@/lib/toast-success'
+import { useConfirm } from '@/components/shared/ConfirmDialog'
 import {
     addCentralaMember,
     updateCentralaMember,
@@ -37,6 +38,7 @@ export function CentralaMembersTab({ members, onRefresh }: CentralaMembersTabPro
     const [fullName, setFullName] = useState('')
     const [role, setRole] = useState<'recruiter' | 'delivery_lead' | 'finance'>('recruiter')
     const [submitting, setSubmitting] = useState(false)
+    const [confirm, ConfirmUI] = useConfirm()
 
     // Edit dialog
     const [editMember, setEditMember] = useState<CentralaMember | null>(null)
@@ -64,7 +66,13 @@ export function CentralaMembersTab({ members, onRefresh }: CentralaMembersTabPro
     }
 
     const handleRemove = async (member: CentralaMember) => {
-        if (!confirm(`Czy na pewno usunąć ${member.email}? Użytkownik straci uprawnienia Centrali po ponownym logowaniu.`)) return
+        const ok = await confirm({
+            title: 'Usuń członka Centrali',
+            description: `Czy na pewno usunąć ${member.email}? Użytkownik straci uprawnienia Centrali po ponownym logowaniu.`,
+            confirmLabel: 'Usuń',
+            variant: 'destructive',
+        })
+        if (!ok) return
 
         try {
             await removeCentralaMember(member.id)
@@ -311,6 +319,8 @@ export function CentralaMembersTab({ members, onRefresh }: CentralaMembersTabPro
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            <ConfirmUI />
         </div>
     )
 }

@@ -16,11 +16,13 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { toastSuccess } from '@/lib/toast-success'
+import { useConfirm } from '@/components/shared/ConfirmDialog'
 
 export function MyReferralsSection() {
     const [referrals, setReferrals] = useState<ProjectReferral[]>([])
     const [loading, setLoading] = useState(true)
     const [isPending, startTransition] = useTransition()
+    const [confirm, ConfirmUI] = useConfirm()
 
     const fetchReferrals = async () => {
         try {
@@ -37,8 +39,14 @@ export function MyReferralsSection() {
         fetchReferrals()
     }, [])
 
-    const handleWithdraw = (id: string) => {
-        if (!confirm('Czy na pewno chcesz wycofać tę rekomendację?')) return
+    const handleWithdraw = async (id: string) => {
+        const ok = await confirm({
+            title: 'Wycofaj rekomendację',
+            description: 'Czy na pewno chcesz wycofać tę rekomendację?',
+            confirmLabel: 'Wycofaj',
+            variant: 'destructive',
+        })
+        if (!ok) return
 
         startTransition(async () => {
             try {
@@ -136,6 +144,8 @@ export function MyReferralsSection() {
                     </div>
                 )}
             </CardContent>
+
+            <ConfirmUI />
         </Card>
     )
 }

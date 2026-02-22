@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Trash2, Plus, Loader2, ShieldAlert, Crown, Shield } from 'lucide-react'
 import { toast } from 'sonner'
 import { toastSuccess } from '@/lib/toast-success'
+import { useConfirm } from '@/components/shared/ConfirmDialog'
 import {
     getAdminMembers,
     addAdminMember,
@@ -27,6 +28,7 @@ export function AdminMembersPanel() {
     const [email, setEmail] = useState('')
     const [fullName, setFullName] = useState('')
     const [submitting, setSubmitting] = useState(false)
+    const [confirm, ConfirmUI] = useConfirm()
 
     useEffect(() => {
         loadData()
@@ -66,7 +68,13 @@ export function AdminMembersPanel() {
     }
 
     const handleRemove = async (member: AdminMember) => {
-        if (!confirm(`Czy na pewno usunąć ${member.email} z listy Administratorów? Osoba straci uprawnienia po ponownym zalogowaniu.`)) return
+        const ok = await confirm({
+            title: 'Usuń Administratora',
+            description: `Czy na pewno usunąć ${member.email} z listy Administratorów? Osoba straci uprawnienia po ponownym zalogowaniu.`,
+            confirmLabel: 'Usuń',
+            variant: 'destructive',
+        })
+        if (!ok) return
 
         try {
             await removeAdminMember(member.id)
@@ -257,6 +265,8 @@ export function AdminMembersPanel() {
                     Obie role widzą identyczne menu i dane — różnią się tylko uprawnieniami w tym panelu.
                 </span>
             </div>
+
+            <ConfirmUI />
         </div>
     )
 }

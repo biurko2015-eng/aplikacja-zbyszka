@@ -7,6 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Trash2 } from 'lucide-react'
 import { deleteCandidates } from '@/lib/actions/candidates'
 import { useRouter } from 'next/navigation'
+import { useConfirm } from '@/components/shared/ConfirmDialog'
 import { MatchedProject } from '@/lib/actions/candidates'
 
 // We use any here because Candidate type is complex and inferred in page.tsx
@@ -31,6 +32,7 @@ export function CandidatesListClient({ candidates, currentPage, totalPages, tota
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
     const [isDeleting, setIsDeleting] = useState(false)
     const router = useRouter()
+    const [confirm, ConfirmUI] = useConfirm()
 
     const toggleSelect = (id: string) => {
         const newSelected = new Set(selectedIds)
@@ -52,7 +54,13 @@ export function CandidatesListClient({ candidates, currentPage, totalPages, tota
 
     const handleDeleteSelected = async () => {
         if (selectedIds.size === 0) return
-        if (!confirm(`Czy na pewno chcesz usunąć ${selectedIds.size} wybranych konsultantów?`)) return
+        const ok = await confirm({
+            title: 'Usuń konsultantów',
+            description: `Czy na pewno chcesz usunąć ${selectedIds.size} wybranych konsultantów?`,
+            confirmLabel: 'Usuń',
+            variant: 'destructive',
+        })
+        if (!ok) return
 
         setIsDeleting(true)
         try {
@@ -154,6 +162,8 @@ export function CandidatesListClient({ candidates, currentPage, totalPages, tota
                     </Button>
                 </div>
             )}
+
+            <ConfirmUI />
         </div>
     )
 }
