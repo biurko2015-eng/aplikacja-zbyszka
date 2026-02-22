@@ -1,0 +1,62 @@
+---
+description: Zasady pracy agenta w projekcie ComPass — stosować w każdej sesji
+alwaysApply: true
+---
+
+# Ustalenia z właścicielem projektu
+
+Każdy agent (w tym New Agent) ma się do tych zasad stosować.
+
+## 1. Nie prosić o błędy — od razu poprawiać kod
+
+- Nie prosić użytkownika o wklejanie komunikatów błędów ani o „odśwież i skopiuj błąd”.
+- Na podstawie opisu problemu od razu wprowadzać poprawki: zabezpieczenia (try/catch), sensowne domyślne zachowania, obsługa błędów.
+- Działać tak, jakby użytkownik nie miał wklejać błędów — samodzielnie diagnozować i naprawiać po stronie kodu.
+
+## 2. Samokontrola przed „naprawione”
+
+- Zanim napisać, że błąd został naprawiony, **zweryfikować** zmiany:
+  - uruchomić `npm run build` (lub odpowiedni build projektu),
+  - sprawdzić lint w zmienionych plikach,
+  - ewentualnie uruchomić testy, jeśli są w projekcie.
+- Dopiero po pozytywnej weryfikacji pisać, że **błąd został naprawiony i sprawdzony**; jeśli czegoś nie da się zweryfikować (np. produkcja), krótko to dopisać.
+
+## 3. Automatyczny commit i push po zmianach
+
+- Po wprowadzeniu zmian w kodzie **samodzielnie** wykonać:
+  1. `git add` zmienionych plików,
+  2. `git commit` z krótkim, sensownym opisem po polsku,
+  3. `git push` (w razie potrzeby `git push --set-upstream origin main`).
+- Działać w repozytorium w katalogu `APK-COMPASS/APK-COMPASS` (tam jest .git i stąd jest deploy).
+- Nie prosić użytkownika o „zrób push” — robić to automatycznie za każdym razem, gdy są zmiany do wypchnięcia.
+
+## 4. Krótkie podsumowania
+
+- Ograniczać długie listy poleceń dla użytkownika.
+- Podsumowania: co zostało zrobione i ewentualnie jedna konkretna informacja lub prośba, tylko gdy naprawdę potrzebna.
+
+## 5. Automatyczne migracje SQL (Supabase)
+
+- Migracje SQL uruchamiać przez uniwersalny skrypt: `node scripts/run-migration.js <nazwa_pliku.sql>`
+- Plik SQL tworzyć w katalogu `supabase/migrations/` z konwencją nazewnictwa: `YYYYMMDD_opis.sql`
+- Po utworzeniu pliku SQL od razu uruchomić migrację i zweryfikować exit code:
+  - Exit 0 = sukces → kontynuować
+  - Exit 1 = błąd → naprawić SQL i powtórzyć uruchomienie
+  - Ostrzeżenie "already exists" = OK, kontynuować
+- **Nie prosić użytkownika** o ręczne uruchamianie migracji ani o wchodzenie do Supabase Dashboard.
+- Każda migracja powinna zawierać komentarz `-- ROLLBACK:` z SQL do cofnięcia zmian.
+
+## 6. Autonomiczna realizacja planu implementacji
+
+Gdy użytkownik zleca realizację etapu z planu (`.cursor/plans/`):
+
+1. **Przeczytać plan** i znaleźć etap do realizacji (status: pending).
+2. **Wykonać WSZYSTKIE kroki etapu samodzielnie**, w kolejności:
+   - Napisać migrację SQL → uruchomić `node scripts/run-migration.js` → zweryfikować sukces
+   - Zmienić pliki TypeScript/TSX → uruchomić `npm run build` → zweryfikować sukces
+   - Sprawdzić linty w zmienionych plikach
+   - Jeśli build lub migracja się nie powiedzie — naprawić i powtórzyć (max 3 próby)
+3. **Po sukcesie**: git add + commit (opis po polsku) + push
+4. **Oznaczyć etap jako completed** w planie (edytować plik `.plan.md`)
+5. **Nie pytać użytkownika** o potwierdzenie kroków pośrednich — działać w pełni autonomicznie.
+6. **Krótkie podsumowanie** po zakończeniu etapu (max 3 zdania): co zrobiono, ile plików zmieniono, czy build OK.
