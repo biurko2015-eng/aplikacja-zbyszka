@@ -1,6 +1,14 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createNotification } from '@/lib/actions/notifications'
+import { sendRoleChangeEmail } from '@/lib/email'
+
+const CENTRALA_ROLE_LABELS: Record<string, string> = {
+    recruiter: 'Rekruter',
+    delivery_lead: 'Delivery Lead',
+    finance: 'Finanse',
+}
 
 // ============================================================
 // Types
@@ -152,11 +160,41 @@ export async function addCentralaMember(
         })
 
     if (error) {
-        if (error.code === '23505') { // unique violation
+        if (error.code === '23505') {
             throw new Error('Ten adres email jest już na liście.')
         }
         console.error('Error adding centrala member:', error)
         throw new Error('Błąd dodawania: ' + error.message)
+    }
+
+    const normalizedEmail = email.trim().toLowerCase()
+    const roleLabel = CENTRALA_ROLE_LABELS[centralaRole] || centralaRole
+
+    try {
+        const { data: targetProfile } = await supabase
+            .from('profiles')
+            .select('id, full_name')
+            .eq('email', normalizedEmail)
+            .maybeSingle()
+
+        const displayName = fullName?.trim() || targetProfile?.full_name || normalizedEmail.split('@')[0]
+
+        if (targetProfile) {
+            await createNotification({
+                userId: targetProfile.id,
+                type: 'role_change',
+                titlePl: 'Twoja rola została zmieniona',
+                titleEn: 'Your role has been changed',
+                bodyPl: `Otrzymałeś rolę ${roleLabel} w Centrali. Wyloguj się i zaloguj ponownie, aby aktywować nowe uprawnienia.`,
+                bodyEn: `You have been assigned the ${roleLabel} role in Centrala. Log out and log in again to activate new permissions.`,
+                actionUrl: '/login',
+                priority: 'high',
+            })
+        }
+
+        await sendRoleChangeEmail(normalizedEmail, displayName, roleLabel, 'added')
+    } catch (notifErr) {
+        console.error('[addCentralaMember] Notification failed (non-blocking):', notifErr)
     }
 
     return { success: true }
@@ -209,7 +247,7 @@ export async function removeCentralaMember(id: string) {
     if (member?.email) {
         const { data: profile } = await supabase
             .from('profiles')
-            .select('id')
+            .select('id, full_name')
             .eq('email', member.email)
             .single()
 
@@ -218,6 +256,27 @@ export async function removeCentralaMember(id: string) {
                 .from('consultant_assignments')
                 .delete()
                 .eq('assigned_to', profile.id)
+        }
+
+        try {
+            const displayName = profile?.full_name || member.email.split('@')[0]
+
+            if (profile) {
+                await createNotification({
+                    userId: profile.id,
+                    type: 'role_change',
+                    titlePl: 'Twoja rola w Centrali została odebrana',
+                    titleEn: 'Your Centrala role has been revoked',
+                    bodyPl: 'Po ponownym zalogowaniu powrócisz do roli Konsultanta.',
+                    bodyEn: 'After logging in again you will return to the Consultant role.',
+                    actionUrl: '/login',
+                    priority: 'high',
+                })
+            }
+
+            await sendRoleChangeEmail(member.email, displayName, '', 'removed')
+        } catch (notifErr) {
+            console.error('[removeCentralaMember] Notification failed (non-blocking):', notifErr)
         }
     }
 

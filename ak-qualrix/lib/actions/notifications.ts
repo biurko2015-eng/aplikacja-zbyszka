@@ -200,7 +200,7 @@ export async function createNotification(params: {
             .eq('id', user.id)
             .single()
 
-        if (profile?.role !== 'admin' && params.userId !== user.id) {
+        if (!['admin', 'administrator'].includes(profile?.role || '') && params.userId !== user.id) {
             return { success: false, error: 'Unauthorized: Only admins can create notifications for other users' }
         }
 

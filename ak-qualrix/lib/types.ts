@@ -91,6 +91,7 @@ export type NotificationType =
     | 'document_uploaded'
     | 'system_announcement'
     | 'payment_received'
+    | 'role_change'
 
 export type NotificationPriority = 'low' | 'normal' | 'high' | 'urgent'
 
