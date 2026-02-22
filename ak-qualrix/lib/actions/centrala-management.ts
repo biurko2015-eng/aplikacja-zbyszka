@@ -285,7 +285,7 @@ export async function getConsultantAssignments(assignedToId?: string): Promise<C
 export async function ensureCentralaMemberProfile(
     email: string,
     _fullName: string | null
-): Promise<string> {
+): Promise<{ profileId?: string; error?: string }> {
     const { supabase } = await requireAdmin()
 
     // Look up profile by email (created automatically when user first logs in)
@@ -295,21 +295,22 @@ export async function ensureCentralaMemberProfile(
         .eq('email', email)
         .maybeSingle()
 
-    if (existingProfile) return existingProfile.id
+    if (existingProfile) return { profileId: existingProfile.id }
 
     // Profile doesn't exist — user has never logged in
-    throw new Error(
-        `Użytkownik ${email} nie ma jeszcze profilu w systemie. ` +
-        `Poproś tę osobę o zalogowanie się do aplikacji przynajmniej raz, ` +
-        `a następnie spróbuj ponownie przypisać konsultantów.`
-    )
+    // Return error object instead of throwing — Next.js production masks thrown errors
+    return {
+        error: `Użytkownik ${email} nie ma jeszcze profilu w systemie. ` +
+            `Poproś tę osobę o zalogowanie się do aplikacji przynajmniej raz, ` +
+            `a następnie spróbuj ponownie przypisać konsultantów.`
+    }
 }
 
 export async function assignConsultant(
     consultantId: string,
     assignedToId: string,
     assignmentType: 'recruiter' | 'delivery_lead'
-) {
+): Promise<{ success: boolean; error?: string }> {
     const { supabase, user } = await requireAdmin()
 
     // --- VALIDATION: Consultant can only have ONE recruiter ---
@@ -330,10 +331,11 @@ export async function assignConsultant(
                 .single()
 
             const recruiterName = recruiterProfile?.full_name || recruiterProfile?.email || 'nieznany'
-            throw new Error(
-                `ALREADY_ASSIGNED:${recruiterName}:Konsultant jest już przypisany do rekrutera ${recruiterName}. ` +
-                `Najpierw rekruter powinien wypisać konsultanta ze swojej listy.`
-            )
+            // Return error object instead of throwing — Next.js production masks thrown errors
+            return {
+                success: false,
+                error: `ALREADY_ASSIGNED:${recruiterName}:Konsultant jest już przypisany do rekrutera ${recruiterName}. Najpierw rekruter powinien wypisać konsultanta ze swojej listy.`
+            }
         }
     }
 
@@ -348,10 +350,10 @@ export async function assignConsultant(
 
     if (error) {
         if (error.code === '23505') {
-            throw new Error('To przypisanie już istnieje.')
+            return { success: false, error: 'To przypisanie już istnieje.' }
         }
         console.error('Error assigning consultant:', error)
-        throw new Error('Błąd przypisania: ' + error.message)
+        return { success: false, error: 'Błąd przypisania: ' + error.message }
     }
 
     return { success: true }

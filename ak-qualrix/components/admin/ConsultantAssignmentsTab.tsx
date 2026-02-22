@@ -96,15 +96,15 @@ export function ConsultantAssignmentsTab({ members }: ConsultantAssignmentsTabPr
             return
         }
 
-        // If member has no profile_id, create a placeholder profile
+        // If member has no profile_id, resolve it
         let resolvedProfileId = member.profile_id
         if (!resolvedProfileId) {
-            try {
-                resolvedProfileId = await ensureCentralaMemberProfile(member.email, member.full_name)
-            } catch (err: any) {
-                toast.error(err.message || 'Nie udało się utworzyć profilu dla członka Centrali.')
+            const profileResult = await ensureCentralaMemberProfile(member.email, member.full_name)
+            if (profileResult.error || !profileResult.profileId) {
+                toast.error(profileResult.error || 'Nie udało się znaleźć profilu dla członka Centrali.')
                 return
             }
+            resolvedProfileId = profileResult.profileId
         }
 
         // Determine assignment type from member's centrala_role
@@ -112,7 +112,21 @@ export function ConsultantAssignmentsTab({ members }: ConsultantAssignmentsTabPr
 
         try {
             if (selectedConsultantIds.length === 1) {
-                await assignConsultant(selectedConsultantIds[0], resolvedProfileId, type)
+                const result = await assignConsultant(selectedConsultantIds[0], resolvedProfileId, type)
+                if (result.error) {
+                    // Parse ALREADY_ASSIGNED error
+                    if (result.error.startsWith('ALREADY_ASSIGNED:')) {
+                        const parts = result.error.split(':')
+                        const recruiterName = parts[1] || 'nieznany'
+                        toast.error(
+                            `Konsultant jest już przypisany do rekrutera ${recruiterName}. Najpierw rekruter powinien wypisać konsultanta ze swojej listy.`,
+                            { duration: 8000 }
+                        )
+                    } else {
+                        toast.error(result.error)
+                    }
+                    return
+                }
                 toastSuccess('Przypisano konsultanta')
             } else {
                 const result: BulkAssignResult = await bulkAssignConsultants(selectedConsultantIds, resolvedProfileId, type)
@@ -142,18 +156,7 @@ export function ConsultantAssignmentsTab({ members }: ConsultantAssignmentsTabPr
             loadAssignments(selectedMemberId!, resolvedProfileId)
             loadConsultants()
         } catch (err: any) {
-            const msg = err.message || 'Błąd przypisania'
-            // Parse ALREADY_ASSIGNED error for single assignment
-            if (msg.startsWith('ALREADY_ASSIGNED:')) {
-                const parts = msg.split(':')
-                const recruiterName = parts[1] || 'nieznany'
-                toast.error(
-                    `Konsultant jest już przypisany do rekrutera ${recruiterName}. Najpierw rekruter powinien wypisać konsultanta ze swojej listy.`,
-                    { duration: 8000 }
-                )
-            } else {
-                toast.error(msg)
-            }
+            toast.error(err.message || 'Błąd przypisania')
         }
     }
 
