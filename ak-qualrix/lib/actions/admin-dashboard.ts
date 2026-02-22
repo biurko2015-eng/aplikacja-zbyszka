@@ -61,6 +61,7 @@ export interface ActivityItem {
 export interface AdminDashboardData {
     // KPI
     totalConsultants: number
+    totalCandidates: number
     utilizationRate: number
     onBench: number
     activeProjects: number
@@ -111,6 +112,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
         projectsResult,
         centralaResult,
         adminResult,
+        candidatesCountResult,
     ] = await Promise.all([
         supabase
             .from('profiles')
@@ -128,6 +130,10 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
         supabase
             .from('admin_access_list')
             .select('email, full_name'),
+        supabase
+            .from('candidates')
+            .select('id', { count: 'exact', head: true })
+            .eq('candidate_status', 'kandydat'),
     ])
 
     const profiles = profilesResult.data || []
@@ -146,6 +152,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     const profileByEmail = new Map(profiles.map(p => [p.email, p]))
 
     // ─── KPI ────────────────────────────────────────────────────────────────
+    const totalCandidates = candidatesCountResult.count || 0
     const totalConsultants = consultants.length
     const onBench = consultants.filter(c =>
         c.current_status === 'bench' || c.current_status === 'available' || !c.current_status
@@ -351,6 +358,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
 
     return {
         totalConsultants,
+        totalCandidates,
         utilizationRate,
         onBench,
         activeProjects,

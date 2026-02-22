@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Users, TrendingUp, Clock, Briefcase, AlertTriangle, UserPlus, FileWarning } from "lucide-react"
+import { Users, TrendingUp, Clock, Briefcase, AlertTriangle, UserPlus, FileWarning, UserSearch } from "lucide-react"
 import { RecruiterEfficiencyTab } from './RecruiterEfficiencyTab'
 import { DeliveryLeadEfficiencyTab } from './DeliveryLeadEfficiencyTab'
 import { ConsultantAnalysisTab } from './ConsultantAnalysisTab'
@@ -29,17 +29,28 @@ export function AdminPanelContent({ dashboardData }: AdminPanelContentProps) {
     return (
         <div className="space-y-6">
             {/* ─── KPI Cards ─────────────────────────────────────────────── */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
                 <Card className="bg-gradient-to-br from-background to-card border-burgundy/15">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-foreground">Konsultanci ogółem</CardTitle>
+                        <CardTitle className="text-sm font-medium text-foreground">Konsultanci</CardTitle>
                         <Users className="h-4 w-4 text-foreground" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-3xl font-bold text-white">{data?.totalConsultants ?? '—'}</div>
                         <p className="text-xs text-muted-foreground mt-1">
-                            {data?.newRecruits ? `+${data.newRecruits} nowych w tym miesiącu` : 'Ładowanie...'}
+                            {data?.newRecruits ? `+${data.newRecruits} nowych w tym miesiącu` : 'Zarejestrowani'}
                         </p>
+                    </CardContent>
+                </Card>
+
+                <Card className="bg-gradient-to-br from-background to-card border-burgundy/15">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium text-foreground">Kandydaci</CardTitle>
+                        <UserSearch className="h-4 w-4 text-cyan-400" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-3xl font-bold text-cyan-400">{data?.totalCandidates ?? '—'}</div>
+                        <p className="text-xs text-muted-foreground mt-1">CV w bazie (pre-rejestracja)</p>
                     </CardContent>
                 </Card>
 
