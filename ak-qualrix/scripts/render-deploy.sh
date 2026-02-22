@@ -37,10 +37,14 @@ RESPONSE=$(curl -s -w "\n%{http_code}" \
 HTTP_CODE=$(echo "$RESPONSE" | tail -1)
 BODY=$(echo "$RESPONSE" | sed '$d')
 
-if [ "$HTTP_CODE" = "201" ]; then
+if [ "$HTTP_CODE" = "201" ] || [ "$HTTP_CODE" = "202" ]; then
     DEPLOY_ID=$(echo "$BODY" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
-    echo "✅ Deploy uruchomiony! ID: $DEPLOY_ID"
-    echo "   https://dashboard.render.com/web/${RENDER_SERVICE_ID}/deploys/${DEPLOY_ID}"
+    if [ -n "$DEPLOY_ID" ]; then
+        echo "✅ Deploy uruchomiony! ID: $DEPLOY_ID"
+        echo "   https://dashboard.render.com/web/${RENDER_SERVICE_ID}/deploys/${DEPLOY_ID}"
+    else
+        echo "✅ Deploy przyjety (HTTP $HTTP_CODE). Sprawdz status na Render Dashboard."
+    fi
 else
     echo "❌ Blad deployu (HTTP $HTTP_CODE):"
     echo "$BODY"
