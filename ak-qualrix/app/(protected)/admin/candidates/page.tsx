@@ -11,73 +11,52 @@ export default async function AdminCandidatesPage({
         q?: string
         sort?: string
         page?: string
+        status?: string
     }
 }) {
     const supabase = createClient()
     const query = searchParams?.q || ''
     const sort = searchParams?.sort || 'newest'
     const page = parseInt(searchParams?.page || '1')
-    const pageSize = 12
+    const statusFilter = searchParams?.status || 'all'
+    const pageSize = 20
 
-    // Fetch only needed columns (skip embedding, bio full text etc.)
-    const { data: allCandidates, error } = await supabase
+    let dbQuery = supabase
         .from('candidates')
-        .select('id, full_name, email, avatar_url, skills, experience_years, current_status, created_at, verifier_status, ambassador_status, sales_support_status, bio, cv_url')
-        .order('created_at', { ascending: false })
+        .select('id, full_name, email, avatar_url, skills, experience_years, current_status, created_at, verifier_status, ambassador_status, sales_support_status, bio, cv_url, candidate_status, source', { count: 'exact' })
+
+    if (statusFilter === 'kandydat') {
+        dbQuery = dbQuery.eq('candidate_status', 'kandydat')
+    } else if (statusFilter === 'konsultant') {
+        dbQuery = dbQuery.eq('candidate_status', 'konsultant')
+    } else if (statusFilter === 'duplicate') {
+        dbQuery = dbQuery.eq('candidate_status', 'duplicate')
+    } else if (statusFilter === 'archived') {
+        dbQuery = dbQuery.eq('candidate_status', 'archived')
+    }
+
+    if (query) {
+        dbQuery = dbQuery.or(`full_name.ilike.%${query}%,email.ilike.%${query}%,bio.ilike.%${query}%`)
+    }
+
+    const orderCol = sort === 'alpha_asc' ? 'full_name' : sort === 'exp_desc' || sort === 'exp_asc' ? 'experience_years' : 'created_at'
+    const ascending = sort === 'oldest' || sort === 'exp_asc' || sort === 'alpha_asc'
+
+    const from = (page - 1) * pageSize
+    const to = from + pageSize - 1
+
+    const { data: allCandidates, error, count } = await dbQuery
+        .order(orderCol, { ascending })
+        .range(from, to)
 
     if (error) {
         console.error('Error fetching candidates:', error)
     }
 
-    // Client-side filtering for comprehensive search (Tags, Bio, Roles, Skills)
-    let candidates = (allCandidates || []).filter(c => {
-        if (!query) return true;
-        const lowerQuery = query.toLowerCase();
-
-        // 1. Basic Fields
-        if (c.full_name?.toLowerCase().includes(lowerQuery)) return true;
-        if (c.email?.toLowerCase().includes(lowerQuery)) return true;
-        if (c.bio?.toLowerCase().includes(lowerQuery)) return true;
-
-        // 2. Skills Array
-        if (c.skills && Array.isArray(c.skills)) {
-            if (c.skills.some((skill: string) => skill.toLowerCase().includes(lowerQuery))) return true;
-        }
-
-        // 3. Roles (Polish mapping)
-        if (c.verifier_status === 'active' && 'weryfikator'.includes(lowerQuery)) return true;
-        if (c.ambassador_status === 'active' && 'ambasador'.includes(lowerQuery)) return true;
-        if (c.sales_support_status === 'active' && 'sprzedaż'.includes(lowerQuery)) return true;
-        if (c.sales_support_status === 'active' && 'sales'.includes(lowerQuery)) return true;
-
-        // 4. Status
-        if (c.current_status === 'free_capacity' && 'wolny'.includes(lowerQuery)) return true;
-        if (c.current_status === 'busy' && 'zajęty'.includes(lowerQuery)) return true;
-
-        return false;
-    });
-
-    // Sorting
-    candidates = candidates.sort((a, b) => {
-        if (sort === 'oldest') {
-            return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-        }
-        if (sort === 'exp_desc') {
-            return (b.experience_years || 0) - (a.experience_years || 0);
-        }
-        if (sort === 'exp_asc') {
-            return (a.experience_years || 0) - (b.experience_years || 0);
-        }
-        if (sort === 'alpha_asc') {
-            return (a.full_name || '').localeCompare(b.full_name || '');
-        }
-        // Default: newest
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-    })
-
-    // Pagination
-    const totalPages = Math.ceil(candidates.length / pageSize)
-    const paginatedCandidates = candidates.slice((page - 1) * pageSize, page * pageSize)
+    const candidates = allCandidates || []
+    const totalCount = count || 0
+    const totalPages = Math.ceil(totalCount / pageSize)
+    const paginatedCandidates = candidates
 
     // Pre-fetch match summaries from cache (match_results table) — NO expensive RPC calls
     // This uses already-computed results. If no cached results exist, show 0 (user can trigger scoring from detail page)
@@ -119,20 +98,28 @@ export default async function AdminCandidatesPage({
         return { ...c, matches: pseudoMatches }
     })
 
+    const statusTabs = [
+        { key: 'all', label: 'Wszyscy' },
+        { key: 'kandydat', label: 'Kandydaci' },
+        { key: 'konsultant', label: 'Konsultanci' },
+        { key: 'duplicate', label: 'Duplikaty' },
+        { key: 'archived', label: 'Archiwum' },
+    ]
+
     return (
         <ProtectedPage feature="candidates">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-white">Baza Konsultantów</h1>
+                    <h1 className="text-3xl font-bold text-white">Baza Konsultantow</h1>
                     <p className="text-muted-foreground">
-                        Lista zweryfikowanych konsultantów i ich dostępność.
+                        {totalCount} rekordow {statusFilter !== 'all' ? `(filtr: ${statusFilter})` : ''}
                     </p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-                    {query && (
+                    {(query || statusFilter !== 'all') && (
                         <div className="flex items-center">
                             <a href="/admin/candidates" className="text-xs text-muted-foreground hover:text-white mr-2">
-                                Wyczyść filtry ✕
+                                Wyczysc filtry
                             </a>
                         </div>
                     )}
@@ -141,11 +128,27 @@ export default async function AdminCandidatesPage({
                 </div>
             </div>
 
+            <div className="flex gap-1 mb-4 flex-wrap">
+                {statusTabs.map(tab => (
+                    <a
+                        key={tab.key}
+                        href={`/admin/candidates?status=${tab.key}${query ? `&q=${query}` : ''}${sort !== 'newest' ? `&sort=${sort}` : ''}`}
+                        className={`px-3 py-1.5 rounded-md text-sm transition-colors ${
+                            statusFilter === tab.key
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-white/5 text-muted-foreground hover:bg-white/10'
+                        }`}
+                    >
+                        {tab.label}
+                    </a>
+                ))}
+            </div>
+
             <CandidatesListClient
                 candidates={candidatesWithMatches}
                 currentPage={page}
                 totalPages={totalPages}
-                totalCount={candidates.length}
+                totalCount={totalCount}
             />
         </ProtectedPage>
     )
