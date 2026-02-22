@@ -9,6 +9,7 @@ import {
     sendMessage,
     markAsRead,
     searchUsersToMessage,
+    getAllUsersToMessage,
     getOrCreateDirectConversation
 } from '@/lib/actions/communicator'
 import { Button } from '@/components/ui/button'
@@ -60,7 +61,9 @@ export function MessagesPageClient({ currentUser, isAdmin }: MessagesPageClientP
     const [searchMode, setSearchMode] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
     const [searchResults, setSearchResults] = useState<any[]>([])
+    const [allUsers, setAllUsers] = useState<any[]>([])
     const [searching, setSearching] = useState(false)
+    const [loadingUsers, setLoadingUsers] = useState(false)
 
     const messagesEndRef = useRef<HTMLDivElement>(null)
     const supabase = createClient()
@@ -116,20 +119,43 @@ export function MessagesPageClient({ currentUser, isAdmin }: MessagesPageClientP
         load()
     }, [activeConversationId])
 
-    // Search users
+    // Load all users when search mode opens
     useEffect(() => {
-        if (!searchQuery || searchQuery.length < 2) {
+        if (!searchMode) return
+        if (allUsers.length > 0) return
+        const loadUsers = async () => {
+            setLoadingUsers(true)
+            const { data } = await getAllUsersToMessage()
+            setAllUsers(data || [])
+            setLoadingUsers(false)
+        }
+        loadUsers()
+    }, [searchMode])
+
+    // Filter users as the user types (client-side for instant UX, server-side fallback for deeper search)
+    useEffect(() => {
+        if (!searchQuery || searchQuery.length < 1) {
             setSearchResults([])
             return
         }
-        const timer = setTimeout(async () => {
-            setSearching(true)
-            const { data } = await searchUsersToMessage(searchQuery)
-            setSearchResults(data || [])
-            setSearching(false)
-        }, 300)
-        return () => clearTimeout(timer)
-    }, [searchQuery])
+        const q = searchQuery.toLowerCase()
+        const filtered = allUsers.filter(u =>
+            u.full_name?.toLowerCase().includes(q) ||
+            u.email?.toLowerCase().includes(q) ||
+            u.role?.toLowerCase().includes(q)
+        )
+        setSearchResults(filtered)
+
+        if (filtered.length === 0 && searchQuery.length >= 2) {
+            const timer = setTimeout(async () => {
+                setSearching(true)
+                const { data } = await searchUsersToMessage(searchQuery)
+                setSearchResults(data || [])
+                setSearching(false)
+            }, 300)
+            return () => clearTimeout(timer)
+        }
+    }, [searchQuery, allUsers])
 
     const handleSelectConversation = (conv: Conversation) => {
         setActiveConversationId(conv.id)
@@ -240,17 +266,31 @@ export function MessagesPageClient({ currentUser, isAdmin }: MessagesPageClientP
                     )}
                 </div>
 
-                {/* Search Results */}
-                {searchMode && searchQuery.length >= 2 && (
-                    <div className="border-b border-white/10 max-h-60 overflow-y-auto">
-                        {searching ? (
+                {/* Recipients List / Search Results */}
+                {searchMode && (
+                    <div className="border-b border-white/10 max-h-72 overflow-y-auto">
+                        {loadingUsers || searching ? (
                             <div className="p-4 text-center">
                                 <Loader2 className="w-4 h-4 animate-spin mx-auto text-slate-600" />
+                                <p className="text-[10px] text-slate-600 mt-1">Ładowanie listy...</p>
                             </div>
-                        ) : searchResults.length === 0 ? (
-                            <div className="p-4 text-center text-xs text-slate-600">Nie znaleziono</div>
-                        ) : (
-                            searchResults.map(user => (
+                        ) : (() => {
+                            const usersToShow = searchQuery.length >= 1 ? searchResults : allUsers
+                            if (usersToShow.length === 0) {
+                                return (
+                                    <div className="p-4 text-center text-xs text-slate-600">
+                                        {searchQuery ? 'Nie znaleziono' : 'Brak dostępnych odbiorców'}
+                                    </div>
+                                )
+                            }
+
+                            const ROLE_LABELS: Record<string, string> = {
+                                administrator: 'Administrator',
+                                centrala: 'Centrala',
+                                consultant: 'Konsultant',
+                            }
+
+                            return usersToShow.map(user => (
                                 <button
                                     key={user.id}
                                     onClick={() => handleStartConversation(user.id)}
@@ -259,16 +299,20 @@ export function MessagesPageClient({ currentUser, isAdmin }: MessagesPageClientP
                                     <Avatar className="w-8 h-8">
                                         <AvatarImage src={user.avatar_url} />
                                         <AvatarFallback className="bg-slate-200/20 text-slate-200 text-xs">
-                                            {user.full_name?.charAt(0) || '?'}
+                                            {(user.full_name || user.email || '?').charAt(0).toUpperCase()}
                                         </AvatarFallback>
                                     </Avatar>
-                                    <div>
-                                        <div className="text-sm font-medium text-white">{user.full_name}</div>
-                                        <div className="text-[10px] text-slate-600">{user.role}</div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="text-sm font-medium text-white truncate">
+                                            {user.full_name || user.email}
+                                        </div>
+                                        <div className="text-[10px] text-slate-600">
+                                            {ROLE_LABELS[user.role] || user.role}
+                                        </div>
                                     </div>
                                 </button>
                             ))
-                        )}
+                        })()}
                     </div>
                 )}
 

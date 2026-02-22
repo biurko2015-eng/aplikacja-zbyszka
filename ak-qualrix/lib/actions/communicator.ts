@@ -272,7 +272,41 @@ export async function markAsRead(conversationId: string) {
 }
 
 /**
- * Wyszukuje użytkowników do nowej wiadomości
+ * Zwraca wszystkich użytkowników dostępnych do wysłania wiadomości.
+ * Używane przy otwarciu trybu "Nowa wiadomość" (przed wpisaniem czegokolwiek).
+ */
+export async function getAllUsersToMessage(): Promise<{ data: any[], error: string | null }> {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { data: [], error: 'Unauthorized' }
+
+    const { data: myProfile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+    if (!myProfile) return { data: [], error: 'Profile not found' }
+
+    let queryBuilder = supabase
+        .from('profiles')
+        .select('id, full_name, email, avatar_url, role')
+        .neq('id', user.id)
+        .not('full_name', 'is', null)
+        .order('full_name')
+        .limit(50)
+
+    if (myProfile.role === 'consultant') {
+        queryBuilder = queryBuilder.neq('role', 'consultant')
+    }
+
+    const { data, error } = await queryBuilder
+
+    if (error) {
+        console.error('Get all users error:', error)
+        return { data: [], error: error.message }
+    }
+
+    return { data: data || [], error: null }
+}
+
+/**
+ * Wyszukuje użytkowników do nowej wiadomości (filtrowanie po nazwie)
  */
 export async function searchUsersToMessage(query: string): Promise<{ data: any[], error: string | null }> {
     const supabase = createClient()
@@ -284,10 +318,11 @@ export async function searchUsersToMessage(query: string): Promise<{ data: any[]
 
     let queryBuilder = supabase
         .from('profiles')
-        .select('id, full_name, avatar_url, role')
-        .ilike('full_name', `%${query}%`)
+        .select('id, full_name, email, avatar_url, role')
+        .or(`full_name.ilike.%${query}%,email.ilike.%${query}%`)
         .neq('id', user.id)
-        .limit(10)
+        .order('full_name')
+        .limit(20)
 
     if (myProfile.role === 'consultant') {
         queryBuilder = queryBuilder.neq('role', 'consultant')
@@ -300,7 +335,7 @@ export async function searchUsersToMessage(query: string): Promise<{ data: any[]
         return { data: [], error: error.message }
     }
 
-    return { data, error: null }
+    return { data: data || [], error: null }
 }
 
 /**
