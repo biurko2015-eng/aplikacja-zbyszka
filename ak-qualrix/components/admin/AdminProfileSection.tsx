@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Shield, Star, Settings, Users, Briefcase, TrendingUp, Award } from "lucide-react"
 import Link from 'next/link'
+import { ThemeQuickPicker } from '@/components/theme/ThemeQuickPicker'
 import { useRouter } from 'next/navigation' // wymagany dla router.refresh() po zapisie profilu
 import type { AdminDashboardData } from '@/lib/actions/admin-dashboard'
 import { updateProfileFull } from '@/lib/actions/matching'
@@ -293,10 +294,13 @@ export function AdminProfileSection({ userProfile, isSuperAdmin = false, dashboa
                             Ustawienia konta
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-2">
+                    <CardContent className="space-y-3">
+                        <div className="flex items-center justify-between py-1 px-1">
+                            <ThemeQuickPicker />
+                        </div>
                         <Link href="/admin/settings/appearance">
                             <Button variant="outline" className="w-full justify-start border-burgundy/30 text-primary hover:bg-burgundy/15 hover:text-foreground">
-                                🎨 Wygląd AI — Personalizacja
+                                🎨 Personalizacja i wygląd
                             </Button>
                         </Link>
                         <Link href="/admin/settings/permissions">

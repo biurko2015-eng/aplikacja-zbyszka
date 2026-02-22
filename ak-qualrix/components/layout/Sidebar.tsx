@@ -18,6 +18,7 @@ import {
     MessageCircle,
 } from 'lucide-react'
 import { Logo } from '@/components/common/Logo'
+import { useTheme } from '@/lib/contexts/ThemeContext'
 import type { PermissionFeature, PermissionValue } from '@/lib/types/permissions'
 
 interface SidebarProps {
@@ -52,6 +53,7 @@ const LINK_PERMISSION_MAP: Record<string, PermissionFeature> = {
 export function Sidebar({ role, user, permissions }: SidebarProps) {
     const pathname = usePathname()
     const { t } = useTranslation()
+    const { brandName } = useTheme()
 
     const consultantLinks = [
         { name: 'Mój Panel', href: '/home', icon: LayoutDashboard },
@@ -92,8 +94,8 @@ export function Sidebar({ role, user, permissions }: SidebarProps) {
     })
 
     return (
-        <div className="hidden border-r bg-[#160E15] md:block md:w-64 lg:w-72 h-screen sticky top-0 left-0 overflow-y-auto">
-            <div className="flex h-20 items-center px-6 border-b border-white/10 gap-3">
+        <div className="hidden border-r bg-card md:block md:w-64 lg:w-72 h-screen sticky top-0 left-0 overflow-y-auto transition-colors duration-300">
+            <div className="flex h-20 items-center px-6 border-b border-border gap-3">
                 <Logo size="md" />
             </div>
             <nav className="flex flex-col gap-1 p-4">
@@ -118,8 +120,8 @@ export function Sidebar({ role, user, permissions }: SidebarProps) {
                     )
                 })}
             </nav>
-            <div className="p-4 border-t border-white/10 text-xs text-center text-muted-foreground/50">
-                ComPass by Inframinds
+            <div className="p-4 border-t border-border text-xs text-center text-muted-foreground/50">
+                ComPass by {brandName}
             </div>
         </div>
     )

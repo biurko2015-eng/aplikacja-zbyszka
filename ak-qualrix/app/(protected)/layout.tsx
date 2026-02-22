@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { LayoutPreferencesProvider } from '@/lib/contexts/LayoutPreferencesContext'
 import { AIAssistantPreferencesProvider } from '@/lib/contexts/AIAssistantPreferencesContext'
+import { ThemeProvider } from '@/lib/contexts/ThemeContext'
 import { getPermissions } from '@/lib/actions/permissions'
 import type { PermissionRole } from '@/lib/types/permissions'
 import { isSuperAdmin } from '@/lib/auth/super-admins'
@@ -70,16 +71,18 @@ export default async function ProtectedLayout({
         }
 
         return (
-            <AIAssistantPreferencesProvider>
-                <AppLayout user={userData} role={role} permissions={userPermissions}>
-                    <LayoutPreferencesProvider>
-                        {children}
-                    </LayoutPreferencesProvider>
-                    <AIAssistantWidget />
-                    <InternalCommunicator currentUser={userData} />
-                    <ScreenGlowEffect />
-                </AppLayout>
-            </AIAssistantPreferencesProvider>
+            <ThemeProvider>
+                <AIAssistantPreferencesProvider>
+                    <AppLayout user={userData} role={role} permissions={userPermissions}>
+                        <LayoutPreferencesProvider>
+                            {children}
+                        </LayoutPreferencesProvider>
+                        <AIAssistantWidget />
+                        <InternalCommunicator currentUser={userData} />
+                        <ScreenGlowEffect />
+                    </AppLayout>
+                </AIAssistantPreferencesProvider>
+            </ThemeProvider>
         )
     } catch (e) {
         const err = e as { digest?: string }

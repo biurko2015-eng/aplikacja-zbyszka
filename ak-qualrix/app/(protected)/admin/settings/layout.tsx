@@ -55,7 +55,7 @@ const settingsGroups: NavGroup[] = [
         label: "Personalizacja",
         items: [
             {
-                title: "Wygląd AI",
+                title: "Personalizacja i wygląd",
                 href: "/admin/settings/appearance",
                 icon: Palette,
             },

@@ -31,6 +31,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pl" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('compass-theme');if(t==='qualrix')document.documentElement.classList.add('theme-qualrix');else if(t==='b2bnetwork')document.documentElement.classList.add('theme-b2bnetwork');}catch(e){}})()` }} />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning

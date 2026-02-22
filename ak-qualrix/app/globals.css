@@ -82,7 +82,6 @@
   }
 
   .dark {
-    /* Same as root — design IS dark mode */
     --background: 312 26% 9%;
     --foreground: 312 14% 95%;
     --card: 312 24% 11%;
@@ -108,6 +107,66 @@
     --warning: 40 60% 55%;
     --tech: 214 100% 61%;
   }
+
+  /* ═══════════════════════════════════════════════════════════════
+     THEME: QUALRIX — Emerald Green on Neutral Black
+     ═══════════════════════════════════════════════════════════════ */
+  .theme-qualrix {
+    --background: 240 20% 4%;
+    --foreground: 210 40% 98%;
+    --card: 240 17% 6%;
+    --card-foreground: 210 40% 98%;
+    --popover: 240 17% 6%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 160 84% 39%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 14% 10%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 240 10% 14%;
+    --muted-foreground: 215 16% 60%;
+    --accent: 240 14% 10%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 240 10% 14%;
+    --input: 240 14% 10%;
+    --ring: 160 84% 39%;
+    --burgundy: 160 84% 30%;
+    --burgundy-light: 160 72% 45%;
+    --success: 160 84% 39%;
+    --warning: 38 92% 50%;
+    --tech: 217 91% 60%;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     THEME: B2BNETWORK — Corporate Blue on Deep Navy
+     ═══════════════════════════════════════════════════════════════ */
+  .theme-b2bnetwork {
+    --background: 216 56% 10%;
+    --foreground: 210 40% 97%;
+    --card: 216 45% 13%;
+    --card-foreground: 210 40% 97%;
+    --popover: 216 45% 13%;
+    --popover-foreground: 210 40% 97%;
+    --primary: 210 100% 40%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 216 35% 16%;
+    --secondary-foreground: 210 40% 97%;
+    --muted: 216 28% 20%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 216 35% 16%;
+    --accent-foreground: 210 40% 97%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 216 28% 20%;
+    --input: 216 35% 16%;
+    --ring: 210 100% 40%;
+    --burgundy: 195 100% 42%;
+    --burgundy-light: 195 80% 55%;
+    --success: 142 76% 36%;
+    --warning: 25 95% 53%;
+    --tech: 210 100% 50%;
+  }
 }
 
 @layer base {
@@ -117,6 +176,7 @@
 
   body {
     @apply bg-background text-foreground;
+    transition: background-color 0.3s ease, color 0.2s ease;
   }
 }
 
