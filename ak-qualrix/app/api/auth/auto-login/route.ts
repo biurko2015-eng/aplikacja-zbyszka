@@ -35,7 +35,7 @@ export async function GET() {
     // 3. Sign in with real credentials
     const { data, error } = await supabase.auth.signInWithPassword({
         email: 'zbigniew.twardowski@b2bnetwork.pl',
-        password: 'Password123!',
+        password: 'ComPass2026!Admin',
     })
 
     if (error) {
