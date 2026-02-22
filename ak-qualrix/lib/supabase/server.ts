@@ -1,4 +1,5 @@
 import { createServerClient } from '@supabase/ssr'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import { createMockSupabaseClient, isSupabaseConfigured } from './mock-client'
 
@@ -29,6 +30,39 @@ export function createClient() {
             return createMockSupabaseClient(emergencyUser === 'zbigniew.twardowski@b2bnetwork.pl' ? (BYPASS_USER as any) : undefined)
         }
 
+        // ─── Emergency bypass with real Supabase ───────────────────────
+        // When bypass cookie is set but Supabase is configured, we need
+        // the service_role key to bypass RLS. The anon key + no auth session
+        // means auth.uid() = NULL in RLS policies → 0 rows returned.
+        if (emergencyUser === 'zbigniew.twardowski@b2bnetwork.pl') {
+            const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+            const clientKey = serviceKey || key // fallback to anon if no service key
+
+            const client = createSupabaseClient(url, clientKey, {
+                auth: {
+                    autoRefreshToken: false,
+                    persistSession: false,
+                },
+            })
+
+            // Override getUser so app code still sees the bypass user
+            client.auth.getUser = async () => ({
+                data: { user: { ...BYPASS_USER } as any },
+                error: null
+            })
+            client.auth.getSession = async () => ({
+                data: { session: null },
+                error: null
+            })
+
+            if (!serviceKey) {
+                console.warn('[SERVER] Emergency bypass active but SUPABASE_SERVICE_ROLE_KEY not set — RLS will block queries. Set the env var on Render.')
+            }
+
+            return client
+        }
+
+        // ─── Normal authenticated flow ─────────────────────────────────
         const client = createServerClient(
         url,
         key,
@@ -49,13 +83,6 @@ export function createClient() {
             },
         }
         )
-
-        if (emergencyUser === 'zbigniew.twardowski@b2bnetwork.pl') {
-            client.auth.getUser = async () => ({
-                data: { user: { ...BYPASS_USER } as any },
-                error: null
-            })
-        }
 
         return client
     } catch (_e) {
