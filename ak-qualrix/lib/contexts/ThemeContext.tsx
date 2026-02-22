@@ -58,6 +58,23 @@ const ThemeContext = createContext<ThemeContextValue>({
     brandName: 'Inframinds',
 })
 
+function buildFaviconSvg(color: string): string {
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32"><polygon points="16,1 29.86,8.5 29.86,23.5 16,31 2.14,23.5 2.14,8.5" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round"/><circle cx="16" cy="16" r="2.5" fill="${color}"/></svg>`
+}
+
+function applyFavicon(color: string) {
+    const svg = buildFaviconSvg(color)
+    const url = `data:image/svg+xml,${encodeURIComponent(svg)}`
+    let link = document.querySelector<HTMLLinkElement>('link[rel="icon"]')
+    if (!link) {
+        link = document.createElement('link')
+        link.rel = 'icon'
+        document.head.appendChild(link)
+    }
+    link.type = 'image/svg+xml'
+    link.href = url
+}
+
 function applyThemeClass(themeId: ThemeId) {
     const root = document.documentElement
     THEME_IDS.forEach(id => {
@@ -66,6 +83,7 @@ function applyThemeClass(themeId: ThemeId) {
     })
     const cls = THEMES[themeId].className
     if (cls) root.classList.add(cls)
+    applyFavicon(THEMES[themeId].preview.primary)
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
