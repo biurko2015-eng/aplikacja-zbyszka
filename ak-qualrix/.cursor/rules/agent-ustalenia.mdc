@@ -57,6 +57,15 @@ Gdy użytkownik zleca realizację etapu z planu (`.cursor/plans/`):
    - Sprawdzić linty w zmienionych plikach
    - Jeśli build lub migracja się nie powiedzie — naprawić i powtórzyć (max 3 próby)
 3. **Po sukcesie**: git add + commit (opis po polsku) + push
-4. **Oznaczyć etap jako completed** w planie (edytować plik `.plan.md`)
-5. **Nie pytać użytkownika** o potwierdzenie kroków pośrednich — działać w pełni autonomicznie.
-6. **Krótkie podsumowanie** po zakończeniu etapu (max 3 zdania): co zrobiono, ile plików zmieniono, czy build OK.
+4. **Po push**: uruchomić `bash scripts/render-deploy.sh` aby wyzwolić deploy na Render (wymaga RENDER_API_KEY i RENDER_SERVICE_ID w .env.local)
+5. **Oznaczyć etap jako completed** w planie (edytować plik `.plan.md`)
+6. **Nie pytać użytkownika** o potwierdzenie kroków pośrednich — działać w pełni autonomicznie.
+7. **Krótkie podsumowanie** po zakończeniu etapu (max 3 zdania): co zrobiono, ile plików zmieniono, czy build OK, czy deploy uruchomiony.
+
+## 7. Automatyczny deploy na Render
+
+- Po każdym `git push` uruchamiać `bash scripts/render-deploy.sh` aby wyzwolić deploy.
+- Jeśli zmiana wymaga czyszczenia cache (np. zmiany w komponentach client-side), użyć `bash scripts/render-deploy.sh --clear-cache`.
+- Skrypt wymaga zmiennych `RENDER_API_KEY` i `RENDER_SERVICE_ID` w `.env.local`.
+- Jeśli zmienne nie są ustawione — poinformować użytkownika jednorazowo i kontynuować (deploy przez auto-deploy z Render).
+- Dostępne komendy npm: `npm run deploy` (zwykły) i `npm run deploy:clear` (z cache clear).

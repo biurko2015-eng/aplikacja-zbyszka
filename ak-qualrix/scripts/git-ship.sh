@@ -14,3 +14,9 @@ MSG="${1:-chore(ak-qualrix): update}"
 git commit -m "$MSG"
 git push
 echo "Wypchnięto na origin."
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [ -f "$SCRIPT_DIR/render-deploy.sh" ]; then
+    echo ""
+    "$SCRIPT_DIR/render-deploy.sh" "$2"
+fi
