@@ -234,35 +234,21 @@ export async function syncProfileToCandidate(userId: string, overrideData: Profi
         max_monthly_hours: overrideData.max_monthly_hours ?? profile.max_monthly_hours
     }
 
-    // 3. Upsert into Candidates (Match by user_id or Email)
+    // 3. Upsert into Candidates (Match by user_id ONLY -- no auto-claim by email)
     console.log('[Sync] Upserting candidate for user:', userId)
 
-    // First, try to find by user_id (Strongest link)
-    let { data: existingCandidate } = await supabase
+    const { data: existingCandidate } = await supabase
         .from('candidates')
         .select('id, user_id')
         .eq('user_id', userId)
         .single()
 
-    // If not found by user_id, try by email (Legacy/Import link)
-    if (!existingCandidate && profile.email) {
-        const { data: emailCandidate } = await supabase
-            .from('candidates')
-            .select('id, user_id')
-            .eq('email', profile.email)
-            .single()
-
-        if (emailCandidate) {
-            existingCandidate = emailCandidate
-            // We found a match by email! We should "claim" this candidate by setting user_id
-            console.log('[Sync] Found candidate by email, claiming with user_id...')
-        }
-    }
-
     let result
     const updateData = {
         ...candidateData,
-        user_id: userId // Ensure user_id is set
+        user_id: userId,
+        candidate_status: 'konsultant' as const,
+        source: 'self_registration' as const,
     }
 
     try {
@@ -325,4 +311,112 @@ export async function getMyProfile() {
         .single()
 
     return profile
+}
+
+export async function searchCandidatesByName(query: string) {
+    if (!query || query.trim().length < 2) return []
+
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Not authenticated')
+
+    const searchTerm = query.trim()
+
+    const { data: candidates, error } = await supabase
+        .from('candidates')
+        .select('id, full_name, email, skills, bio, cv_url, created_at, original_filename')
+        .eq('candidate_status', 'kandydat')
+        .ilike('full_name', `%${searchTerm}%`)
+        .order('full_name')
+        .limit(20)
+
+    if (error) {
+        console.error('[Search] Error searching candidates:', error)
+        return []
+    }
+
+    return (candidates || []).map(c => ({
+        id: c.id,
+        full_name: c.full_name,
+        email: c.email ? c.email.replace(/(.{2})(.*)(@.*)/, '$1***$3') : null,
+        skills: (c.skills || []).slice(0, 5),
+        bio_snippet: c.bio ? c.bio.substring(0, 150) + '...' : null,
+        cv_url: c.cv_url,
+        created_at: c.created_at,
+        original_filename: c.original_filename,
+    }))
+}
+
+export async function claimCandidate(candidateId: string) {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Not authenticated')
+
+    const { data: candidate, error: fetchError } = await supabase
+        .from('candidates')
+        .select('id, user_id, candidate_status')
+        .eq('id', candidateId)
+        .single()
+
+    if (fetchError || !candidate) {
+        return { success: false, error: 'Kandydat nie znaleziony.' }
+    }
+
+    if (candidate.user_id) {
+        return { success: false, error: 'To CV zostalo juz przypisane do innego konta.' }
+    }
+
+    if (candidate.candidate_status !== 'kandydat') {
+        return { success: false, error: 'To CV nie jest dostepne do przypisania.' }
+    }
+
+    const { data: alreadyClaimed } = await supabase
+        .from('candidates')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('candidate_status', 'konsultant')
+        .single()
+
+    if (alreadyClaimed) {
+        return { success: false, error: 'Masz juz przypisane CV.' }
+    }
+
+    const { error: updateError } = await supabase
+        .from('candidates')
+        .update({
+            user_id: user.id,
+            claimed_by: user.id,
+            claimed_at: new Date().toISOString(),
+            candidate_status: 'konsultant',
+        })
+        .eq('id', candidateId)
+
+    if (updateError) {
+        console.error('[Claim] Error claiming candidate:', updateError)
+        return { success: false, error: 'Nie udalo sie przypisac CV.' }
+    }
+
+    const { data: claimedCandidate } = await supabase
+        .from('candidates')
+        .select('bio, skills, cv_url, avatar_url, experience_years, previous_clients')
+        .eq('id', candidateId)
+        .single()
+
+    if (claimedCandidate) {
+        const profileUpdate: Record<string, unknown> = { onboarding_completed: true }
+        if (claimedCandidate.bio) profileUpdate.bio = claimedCandidate.bio
+        if (claimedCandidate.skills?.length) profileUpdate.skills = claimedCandidate.skills
+        if (claimedCandidate.cv_url) profileUpdate.cv_url = claimedCandidate.cv_url
+        if (claimedCandidate.avatar_url) profileUpdate.avatar_url = claimedCandidate.avatar_url
+        if (claimedCandidate.experience_years) profileUpdate.experience_years = claimedCandidate.experience_years
+        if (claimedCandidate.previous_clients?.length) profileUpdate.previous_clients = claimedCandidate.previous_clients
+
+        await supabase.from('profiles').update(profileUpdate).eq('id', user.id)
+    }
+
+    revalidatePath('/home')
+    revalidatePath('/profile')
+    revalidatePath('/admin/candidates')
+
+    return { success: true }
 }

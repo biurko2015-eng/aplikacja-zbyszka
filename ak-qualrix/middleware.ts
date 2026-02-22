@@ -34,7 +34,35 @@ export async function middleware(request: NextRequest) {
         return response
     }
 
-    await supabase.auth.getUser()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (user) {
+        const pathname = request.nextUrl.pathname
+        const isOnboarding = pathname.startsWith('/onboarding')
+        const isPublicPath = pathname.startsWith('/login') || pathname.startsWith('/auth') || pathname.startsWith('/forgot-password')
+        const onboardingDone = request.cookies.get('onboarding_done')?.value === 'true'
+
+        if (!isPublicPath && !isOnboarding && !onboardingDone) {
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('role, onboarding_completed')
+                .eq('id', user.id)
+                .single()
+
+            if (profile?.role === 'consultant' && !profile?.onboarding_completed) {
+                const redirectUrl = new URL('/onboarding', request.url)
+                return NextResponse.redirect(redirectUrl)
+            } else if (profile?.onboarding_completed || profile?.role !== 'consultant') {
+                response.cookies.set('onboarding_done', 'true', {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === 'production',
+                    path: '/',
+                    maxAge: 60 * 60 * 24 * 30,
+                })
+            }
+        }
+    }
+
     return response
 }
 

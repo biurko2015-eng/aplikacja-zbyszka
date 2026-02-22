@@ -183,10 +183,10 @@ export async function login(formData: FormData) {
         return { error: 'Błąd sesji. Spróbuj ponownie.' }
     }
 
-    // 3. Get current profile role
+    // 3. Get current profile role + onboarding status
     const { data: profile } = await supabase
         .from('profiles')
-        .select('role')
+        .select('role, onboarding_completed')
         .eq('id', user.id)
         .single()
 
@@ -195,7 +195,17 @@ export async function login(formData: FormData) {
     // 4. Sync role from access lists (single source of truth)
     const role = await syncRole(supabase, user.id, email, currentRole)
 
-    // 5. Set MFA cookie for admin/centrala roles
+    // 5a. Set onboarding cookie
+    if (profile?.onboarding_completed || role !== 'consultant') {
+        cookies().set('onboarding_done', 'true', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            path: '/',
+            maxAge: 60 * 60 * 24 * 30,
+        })
+    }
+
+    // 5b. Set MFA cookie for admin/centrala roles
     if (role === 'admin' || role === 'administrator' || role === 'centrala') {
         cookies().set('mfa_verified', 'true', {
             httpOnly: true,

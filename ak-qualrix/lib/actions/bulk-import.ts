@@ -8,13 +8,17 @@ import { processDataWithAI } from '@/lib/ai/processor'
 
 // --- Bulk Candidate Import (File) ---
 
-export async function importCandidate(formData: FormData) {
+export async function importCandidate(formData: FormData, batchId?: string) {
     const file = formData.get('file') as File
     if (!file) throw new Error('No file')
 
+    const validationError = validateFile(file)
+    if (validationError) {
+        return { success: false, name: file.name, message: validationError }
+    }
+
     const supabase = createClient()
 
-    // 1. Upload to Storage
     const fileExt = file.name.split('.').pop()
     const filePath = `candidates/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
 
@@ -26,11 +30,9 @@ export async function importCandidate(formData: FormData) {
         throw new Error(`Upload failed: ${uploadError.message}`)
     }
 
-    // 2. Parse & AI Process
     const text = await parseFile(file)
     const data = await processDataWithAI(text, 'candidate')
 
-    // Handle Images
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
     let avatarUrl = null
@@ -51,9 +53,9 @@ export async function importCandidate(formData: FormData) {
                 avatarUrl = publicUrl
             }
         }
-    } catch (e) { }
+    } catch { /* image extraction optional */ }
 
-    return saveCandidate(data, text, filePath, avatarUrl)
+    return saveCandidate(data, text, filePath, avatarUrl, file.name, batchId)
 }
 
 // --- Import from Text ---
@@ -84,14 +86,89 @@ export async function importFromLink(url: string, type: 'candidate' | 'project')
     }
 }
 
-// --- Helper: Save Candidate ---
-async function saveCandidate(data: any, rawText: string, cvUrl?: string, avatarUrl?: string | null) {
+const MAX_FILE_SIZE = 10 * 1024 * 1024
+const ALLOWED_MIME_TYPES = [
+    'application/pdf',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+]
+
+function validateFile(file: File): string | null {
+    if (file.size > MAX_FILE_SIZE) return `Plik za duzy (max ${MAX_FILE_SIZE / 1024 / 1024}MB)`
+    const ext = file.name.split('.').pop()?.toLowerCase()
+    if (!ext || !['pdf', 'docx'].includes(ext)) return 'Dozwolone formaty: PDF, DOCX'
+    return null
+}
+
+async function saveCandidate(
+    data: any,
+    rawText: string,
+    cvUrl?: string,
+    avatarUrl?: string | null,
+    originalFilename?: string,
+    batchId?: string
+) {
     const supabase = createClient()
 
-    // Duplicate check
     if (data.email) {
-        const { data: existing } = await supabase.from('candidates').select('id').eq('email', data.email).single()
-        if (existing) return { success: false, name: data.full_name, message: 'Duplikat (Email)' }
+        const { data: existing } = await supabase
+            .from('candidates')
+            .select('id, full_name, candidate_status')
+            .eq('email', data.email)
+            .single()
+
+        if (existing) {
+            if (existing.candidate_status === 'kandydat' && cvUrl) {
+                const { data: current } = await supabase
+                    .from('candidates')
+                    .select('cv_versions')
+                    .eq('id', existing.id)
+                    .single()
+
+                const versions = current?.cv_versions || []
+                versions.push({
+                    url: cvUrl,
+                    filename: originalFilename,
+                    uploaded_at: new Date().toISOString(),
+                })
+
+                await supabase.from('candidates').update({ cv_versions: versions }).eq('id', existing.id)
+            }
+            return { success: false, name: data.full_name, message: 'Duplikat (Email) -- wersja CV dodana' }
+        }
+    }
+
+    if (data.full_name) {
+        const { data: nameMatches } = await supabase
+            .from('candidates')
+            .select('id')
+            .ilike('full_name', data.full_name.trim())
+            .eq('candidate_status', 'kandydat')
+
+        if (nameMatches && nameMatches.length > 0 && !data.email) {
+            const embedding = await generateEmbedding(rawText)
+            const { error } = await supabase.from('candidates').insert({
+                full_name: data.full_name || 'Unknown Candidate',
+                email: data.email,
+                phone: data.phone,
+                skills: data.skills || [],
+                bio: data.bio_summary,
+                experience_years: data.experience_years,
+                previous_clients: data.previous_clients || [],
+                cv_url: cvUrl,
+                avatar_url: avatarUrl,
+                embedding,
+                status: 'new',
+                candidate_status: 'duplicate',
+                source: 'import',
+                import_batch_id: batchId,
+                original_filename: originalFilename,
+                raw_text: rawText?.substring(0, 50000),
+                cv_parsed: true,
+            })
+            if (error) throw new Error(`DB Error: ${error.message}`)
+            revalidatePath('/admin/candidates')
+            return { success: true, name: data.full_name, message: 'Potencjalny duplikat nazwy -- do weryfikacji' }
+        }
     }
 
     const embedding = await generateEmbedding(rawText)
@@ -106,7 +183,13 @@ async function saveCandidate(data: any, rawText: string, cvUrl?: string, avatarU
         cv_url: cvUrl,
         avatar_url: avatarUrl,
         embedding,
-        status: 'new'
+        status: 'new',
+        candidate_status: 'kandydat',
+        source: 'import',
+        import_batch_id: batchId,
+        original_filename: originalFilename,
+        raw_text: rawText?.substring(0, 50000),
+        cv_parsed: true,
     })
 
     if (error) throw new Error(`DB Error: ${error.message}`)
