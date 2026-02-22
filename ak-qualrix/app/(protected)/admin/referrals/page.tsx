@@ -1,9 +1,18 @@
 import { getAdminReferrals } from '@/lib/actions/referrals'
 import { ReferralsAdminClient } from '@/components/admin/ReferralsAdminClient'
 import { ProtectedPage } from '@/components/common/ProtectedPage'
+import { redirect } from 'next/navigation'
 
 export default async function AdminReferralsPage() {
-    const referrals = await getAdminReferrals()
+    let referrals
+    try {
+        referrals = await getAdminReferrals()
+    } catch (e) {
+        const err = e as { digest?: string }
+        if (err?.digest === 'NEXT_REDIRECT') throw e
+        console.error('[AdminReferralsPage]', e)
+        referrals = []
+    }
 
     return (
         <ProtectedPage feature="referrals">

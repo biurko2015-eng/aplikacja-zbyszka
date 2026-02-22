@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -25,23 +25,18 @@ export function AdminWelcomePanel({ user, isSuperAdmin = false }: AdminWelcomePa
     const [avatarUrl, setAvatarUrl] = useState(user?.avatar_url || '')
     const router = useRouter()
 
-    if (!user) return null;
+    const [greeting, setGreeting] = useState('Dzień dobry')
+    const [dateStr, setDateStr] = useState('')
 
-    const getGreeting = () => {
+    useEffect(() => {
         const hour = new Date().getHours()
-        if (hour < 12) return "Dzień dobry"
-        if (hour < 18) return "Dzień dobry"
-        return "Dobry wieczór"
-    }
+        setGreeting(hour < 18 ? 'Dzień dobry' : 'Dobry wieczór')
+        setDateStr(new Date().toLocaleDateString('pl-PL', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        }))
+    }, [])
 
-    const getDateStr = () => {
-        return new Date().toLocaleDateString('pl-PL', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        })
-    }
+    if (!user) return null;
 
     const initials = user.full_name
         ? user.full_name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
@@ -125,10 +120,10 @@ export function AdminWelcomePanel({ user, isSuperAdmin = false }: AdminWelcomePa
 
                     <div>
                         <h2 className="text-2xl font-bold flex items-center gap-2 text-white">
-                            {getGreeting()}, {(user.full_name || 'Administrator').split(' ')[0]}!
+                            {greeting}, {(user.full_name || 'Administrator').split(' ')[0]}!
                         </h2>
                         <p className="text-muted-foreground text-sm">
-                            Panel Administratora • {getDateStr()}
+                            Panel Administratora{dateStr ? ` • ${dateStr}` : ''}
                         </p>
                     </div>
                 </div>

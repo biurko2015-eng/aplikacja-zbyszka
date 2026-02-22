@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import Image from 'next/image'
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -8,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { FileText, Mail, User as UserIcon, Clock, Target } from 'lucide-react'
+import { ClientDate } from '@/components/common/ClientDate'
 import {
     Dialog,
     DialogContent,
@@ -16,6 +16,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
+import { useRouter } from 'next/navigation'
 import { MatchedProject } from '@/lib/actions/candidates'
 import { MatchAnalysisDialog } from "./MatchAnalysisDialog"
 import { DeleteCandidateButton } from './DeleteCandidateButton'
@@ -29,6 +30,7 @@ interface CandidateCardProps {
 }
 
 export function CandidateCard({ candidate, isSelected, onToggleSelect, initialMatches }: CandidateCardProps) {
+    const router = useRouter()
     const [isOpen, setIsOpen] = useState(false)
     const [selectedProject, setSelectedProject] = useState<MatchedProject | null>(null)
     const [analysisOpen, setAnalysisOpen] = useState(false)
@@ -83,7 +85,7 @@ export function CandidateCard({ candidate, isSelected, onToggleSelect, initialMa
                         <CardTitle className="text-lg font-bold truncate">{candidate.full_name || 'Nieznany'}</CardTitle>
                         <div className="text-xs text-muted-foreground flex items-center gap-1">
                             <Clock className="w-3 h-3" />
-                            {new Date(candidate.created_at).toLocaleDateString('pl-PL')}
+                            <ClientDate date={candidate.created_at} />
                         </div>
                     </div>
                 </div>
@@ -247,20 +249,22 @@ export function CandidateCard({ candidate, isSelected, onToggleSelect, initialMa
                 <div className="flex-1" />
 
                 <div className="pt-2 flex gap-2">
-                    <Link
-                        href={`/admin/candidates/${candidate.id}?tab=profile`}
-                        className="flex-1 flex items-center justify-center gap-2 text-xs py-2 rounded-md bg-secondary/30 text-gray-300 hover:bg-slate-200/10 hover:text-slate-200 border border-white/5 transition-colors"
+                    <button
+                        type="button"
+                        onClick={() => router.push(`/admin/candidates/${candidate.id}?tab=profile`)}
+                        className="flex-1 flex items-center justify-center gap-2 text-xs py-2 rounded-md bg-secondary/30 text-gray-300 hover:bg-slate-200/10 hover:text-slate-200 border border-white/5 transition-colors cursor-pointer"
                     >
                         <UserIcon className="w-3 h-3" />
                         Profil
-                    </Link>
-                    <Link
-                        href={`/admin/candidates/${candidate.id}?tab=cv`}
-                        className="flex-1 flex items-center justify-center gap-2 text-xs py-2 rounded-md bg-secondary/30 text-gray-300 hover:bg-slate-200/10 hover:text-slate-200 border border-white/5 transition-colors"
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => router.push(`/admin/candidates/${candidate.id}?tab=profile`)}
+                        className="flex-1 flex items-center justify-center gap-2 text-xs py-2 rounded-md bg-secondary/30 text-gray-300 hover:bg-slate-200/10 hover:text-slate-200 border border-white/5 transition-colors cursor-pointer"
                     >
                         <FileText className="w-3 h-3" />
                         CV
-                    </Link>
+                    </button>
                 </div>
 
                 {/* Matching Projects Section (Moved below actions for cleaner DOM) */}

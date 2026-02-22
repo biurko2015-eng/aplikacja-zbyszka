@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Briefcase, DollarSign, Clock, MapPin, Globe, Pencil, Save, X, CalendarClock, User, Trash2, RefreshCw } from 'lucide-react'
 import { useState } from 'react'
+import { ClientDate } from '@/components/common/ClientDate'
 import { Project, ProjectMatch } from '@/lib/types'
 import { getProjectMatches, updateProject, getMyProjectMatch } from '@/lib/actions/projects'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -179,7 +180,7 @@ export function ProjectCard({
                                 )}
                             </div>
                             <div className="text-xs text-muted-foreground flex items-center gap-2 shrink-0">
-                                <Clock className="w-3 h-3" /> {new Date(project.created_at).toLocaleDateString('pl-PL')}
+                                <Clock className="w-3 h-3" /> <ClientDate date={project.created_at} />
                             </div>
                         </div>
 

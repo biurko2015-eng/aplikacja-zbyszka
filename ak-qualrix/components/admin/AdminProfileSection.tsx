@@ -309,12 +309,12 @@ export function AdminProfileSection({ userProfile, isSuperAdmin = false, dashboa
                                 🖥️ Konfiguracja systemu
                             </Button>
                         </Link>
-                        <div className="pt-3 text-center text-xs text-muted-foreground/70 space-y-0.5">
+                        <div className="pt-3 text-center text-xs text-muted-foreground/70 space-y-0.5" suppressHydrationWarning>
                             {user.last_sign_in_at && (
-                                <p>Ostatnie logowanie: {new Date(user.last_sign_in_at).toLocaleString('pl-PL')}</p>
+                                <p suppressHydrationWarning>Ostatnie logowanie: {new Date(user.last_sign_in_at).toLocaleString('pl-PL')}</p>
                             )}
                             {user.created_at && (
-                                <p>Konto utworzone: {new Date(user.created_at).toLocaleDateString('pl-PL')}</p>
+                                <p suppressHydrationWarning>Konto utworzone: {new Date(user.created_at).toLocaleDateString('pl-PL')}</p>
                             )}
                         </div>
                     </CardContent>
