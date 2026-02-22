@@ -46,7 +46,7 @@ function GridLayout() {
                             <CardTitle>💼 O mnie</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <p className="text-[foreground]">
+                            <p className="text-foreground">
                                 Doświadczony konsultant z 8+ lat w branży IT...
                             </p>
                         </CardContent>
@@ -58,7 +58,7 @@ function GridLayout() {
                         <CardContent>
                             <div className="flex flex-wrap gap-2">
                                 {['React', 'TypeScript', 'Node.js'].map(skill => (
-                                    <span key={skill} className="px-3 py-1 bg-[foreground]/20 text-cyan-300 rounded-lg text-sm">
+                                    <span key={skill} className="px-3 py-1 bg-foreground/20 text-cyan-300 rounded-lg text-sm">
                                         {skill}
                                     </span>
                                 ))}
@@ -69,12 +69,12 @@ function GridLayout() {
 
                 {/* Right Column (1/3) */}
                 <div className="space-y-6">
-                    <Card className="bg-gradient-to-br from-[foreground]/10 to-[burgundy]/10 border-[foreground]/30">
+                    <Card className="bg-gradient-to-br from-foreground/10 to-burgundy/10 border-foreground/30">
                         <CardHeader>
                             <CardTitle>📄 CV</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <button className="w-full px-4 py-2 bg-gradient-to-r from-[foreground] to-[burgundy] text-white rounded-lg font-semibold">
+                            <button className="w-full px-4 py-2 bg-gradient-to-r from-foreground to-burgundy text-white rounded-lg font-semibold">
                                 Wgraj CV
                             </button>
                         </CardContent>
@@ -84,7 +84,7 @@ function GridLayout() {
                             <CardTitle>📅 Dostępność</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <p className="text-sm text-[foreground]">Status: Dostępny</p>
+                            <p className="text-sm text-foreground">Status: Dostępny</p>
                         </CardContent>
                     </Card>
                 </div>
@@ -108,8 +108,8 @@ function TabsLayout() {
                         key={tab}
                         onClick={() => setActiveTab(tab)}
                         className={`px-4 py-2 rounded-lg font-semibold transition ${activeTab === tab
-                                ? 'bg-gradient-to-r from-[foreground] to-[burgundy] text-white'
-                                : 'bg-[card] text-[muted-foreground] hover:text-white'
+                                ? 'bg-gradient-to-r from-foreground to-burgundy text-white'
+                                : 'bg-card text-muted-foreground hover:text-white'
                             }`}
                     >
                         {tab === 'overview' && '📊 Przegląd'}
@@ -131,7 +131,7 @@ function TabsLayout() {
                                 {['8+ lat', 'Dostępny', '75%', '1250 pkt'].map((stat, i) => (
                                     <div key={i} className="text-center">
                                         <div className="text-2xl font-bold text-white">{stat}</div>
-                                        <div className="text-xs text-[muted-foreground]">Metryka {i + 1}</div>
+                                        <div className="text-xs text-muted-foreground">Metryka {i + 1}</div>
                                     </div>
                                 ))}
                             </div>
@@ -160,11 +160,11 @@ function FeedLayout() {
                     <CardContent>
                         <div className="space-y-2">
                             <div>
-                                <label className="text-sm text-[muted-foreground]">Imię i nazwisko</label>
+                                <label className="text-sm text-muted-foreground">Imię i nazwisko</label>
                                 <p className="text-white">Jan Kowalski</p>
                             </div>
                             <div>
-                                <label className="text-sm text-[muted-foreground]">Email</label>
+                                <label className="text-sm text-muted-foreground">Email</label>
                                 <p className="text-white">jan@example.com</p>
                             </div>
                         </div>
@@ -178,7 +178,7 @@ function FeedLayout() {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <p className="text-[foreground]">
+                        <p className="text-foreground">
                             Doświadczony konsultant IT specjalizujący się w transformacji cyfrowej...
                         </p>
                     </CardContent>
@@ -192,22 +192,22 @@ function FeedLayout() {
                     </CardHeader>
                     <CardContent>
                         <div>
-                            <label className="text-sm text-[muted-foreground]">Obciążenie: 75%</label>
+                            <label className="text-sm text-muted-foreground">Obciążenie: 75%</label>
                             <div className="mt-2 h-3 bg-[muted] rounded-full overflow-hidden">
-                                <div className="h-full bg-gradient-to-r from-[foreground] to-[burgundy]" style={{ width: '75%' }}></div>
+                                <div className="h-full bg-gradient-to-r from-foreground to-burgundy" style={{ width: '75%' }}></div>
                             </div>
                         </div>
                     </CardContent>
                 </Card>
 
-                <Card className="bg-gradient-to-br from-[foreground]/10 to-[burgundy]/10 border-[foreground]/30">
+                <Card className="bg-gradient-to-br from-foreground/10 to-burgundy/10 border-foreground/30">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
                             📄 Dokumenty & CV
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <button className="w-full px-4 py-3 bg-gradient-to-r from-[foreground] to-[burgundy] text-white rounded-lg font-semibold">
+                        <button className="w-full px-4 py-3 bg-gradient-to-r from-foreground to-burgundy text-white rounded-lg font-semibold">
                             Wgraj CV
                         </button>
                     </CardContent>

@@ -222,14 +222,14 @@ export default function DevelopmentPage() {
 
     const getScoreColor = (score: number) => {
         if (score >= 75) return 'text-green-400'
-        if (score >= 50) return 'text-[foreground]'
+        if (score >= 50) return 'text-foreground'
         if (score >= 25) return 'text-amber-400'
         return 'text-red-400'
     }
 
     const getScoreBg = (score: number) => {
         if (score >= 75) return 'bg-green-500/20 border-green-500/30'
-        if (score >= 50) return 'bg-[primary]/20 border-[primary]/30'
+        if (score >= 50) return 'bg-primary/20 border-primary/30'
         if (score >= 25) return 'bg-amber-500/20 border-amber-500/30'
         return 'bg-red-500/20 border-red-500/30'
     }
@@ -237,15 +237,15 @@ export default function DevelopmentPage() {
     const getFitColor = (fit: string) => {
         switch (fit) {
             case 'excellent': return { bg: 'bg-green-500/10', border: 'border-green-500/20', text: 'text-green-400', label: 'Doskonałe' }
-            case 'good': return { bg: 'bg-[primary]/10', border: 'border-[primary]/20', text: 'text-[foreground]', label: 'Dobre' }
+            case 'good': return { bg: 'bg-primary/10', border: 'border-primary/20', text: 'text-foreground', label: 'Dobre' }
             case 'partial': return { bg: 'bg-amber-500/10', border: 'border-amber-500/20', text: 'text-amber-400', label: 'Częściowe' }
             default: return { bg: 'bg-red-500/10', border: 'border-red-500/20', text: 'text-red-400', label: 'Niskie' }
         }
     }
 
     const quarterColors = [
-        { bg: 'bg-[primary]/10', border: 'border-[primary]/20', text: 'text-[foreground]', dot: 'bg-[primary]' },
-        { bg: 'bg-[burgundy]/10', border: 'border-[burgundy]/20', text: 'text-[primary]', dot: 'bg-[burgundy]' },
+        { bg: 'bg-primary/10', border: 'border-primary/20', text: 'text-foreground', dot: 'bg-primary' },
+        { bg: 'bg-burgundy/10', border: 'border-burgundy/20', text: 'text-primary', dot: 'bg-burgundy' },
         { bg: 'bg-amber-500/10', border: 'border-amber-500/20', text: 'text-amber-400', dot: 'bg-amber-500' },
         { bg: 'bg-green-500/10', border: 'border-green-500/20', text: 'text-green-400', dot: 'bg-green-500' },
     ]
@@ -264,10 +264,10 @@ export default function DevelopmentPage() {
                 <div className="flex items-start justify-between flex-wrap gap-4">
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight mb-2 flex items-center gap-3">
-                            <Rocket className="w-8 h-8 text-[primary]" />
+                            <Rocket className="w-8 h-8 text-primary" />
                             Strefa Rozwoju
                         </h1>
-                        <p className="text-[muted-foreground]">
+                        <p className="text-muted-foreground">
                             {isManagerView
                                 ? 'Analiza i rozwój konsultantów — widok Managera'
                                 : 'AI-powered analiza Twojej kariery, kompetencji i plan rozwoju.'
@@ -280,7 +280,7 @@ export default function DevelopmentPage() {
                 {/* CONSULTANT SELECTOR — only for admin/centrala */}
                 {/* ============================================================ */}
                 {isManagerView && (
-                    <Card className="bg-gradient-to-r from-indigo-500/10 to-[burgundy]/10 border-indigo-500/20">
+                    <Card className="bg-gradient-to-r from-indigo-500/10 to-burgundy/10 border-indigo-500/20">
                         <CardContent className="p-5">
                             <div className="flex items-center gap-3 mb-3">
                                 <Users className="w-5 h-5 text-indigo-400" />
@@ -293,7 +293,7 @@ export default function DevelopmentPage() {
                             <div className="relative">
                                 <div className="flex items-center gap-3">
                                     <div className="relative flex-1">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[muted-foreground]" />
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                                         <input
                                             type="text"
                                             placeholder="Szukaj po nazwisku, emailu lub umiejętności..."
@@ -303,7 +303,7 @@ export default function DevelopmentPage() {
                                                 setShowConsultantDropdown(true)
                                             }}
                                             onFocus={() => setShowConsultantDropdown(true)}
-                                            className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder:text-[muted-foreground] focus:outline-none focus:border-indigo-500/50"
+                                            className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder:text-muted-foreground focus:outline-none focus:border-indigo-500/50"
                                         />
                                     </div>
                                     {selectedConsultant && (
@@ -326,9 +326,9 @@ export default function DevelopmentPage() {
 
                                 {/* Dropdown */}
                                 {showConsultantDropdown && (
-                                    <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-[background] border border-white/10 rounded-lg max-h-64 overflow-y-auto shadow-xl">
+                                    <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-background border border-white/10 rounded-lg max-h-64 overflow-y-auto shadow-xl">
                                         {filteredConsultants.length === 0 ? (
-                                            <div className="p-4 text-sm text-[muted-foreground] text-center">Brak wyników</div>
+                                            <div className="p-4 text-sm text-muted-foreground text-center">Brak wyników</div>
                                         ) : (
                                             filteredConsultants.map(c => (
                                                 <button
@@ -341,10 +341,10 @@ export default function DevelopmentPage() {
                                                     <div className="flex items-center justify-between">
                                                         <div>
                                                             <p className="text-sm font-medium">{c.fullName}</p>
-                                                            <p className="text-xs text-[muted-foreground]">{c.email}</p>
+                                                            <p className="text-xs text-muted-foreground">{c.email}</p>
                                                         </div>
                                                         <div className="text-right">
-                                                            <p className="text-xs text-[muted-foreground]">{c.experienceYears || 0} lat exp.</p>
+                                                            <p className="text-xs text-muted-foreground">{c.experienceYears || 0} lat exp.</p>
                                                             {c.currentStatus && (
                                                                 <Badge variant="outline" className="text-[9px] border-white/10 mt-0.5">
                                                                     {c.currentStatus}
@@ -355,12 +355,12 @@ export default function DevelopmentPage() {
                                                     {c.skills.length > 0 && (
                                                         <div className="flex flex-wrap gap-1 mt-1.5">
                                                             {c.skills.slice(0, 6).map(s => (
-                                                                <Badge key={s} className="bg-white/5 text-[muted-foreground] border-0 text-[9px] h-4 px-1">
+                                                                <Badge key={s} className="bg-white/5 text-muted-foreground border-0 text-[9px] h-4 px-1">
                                                                     {s}
                                                                 </Badge>
                                                             ))}
                                                             {c.skills.length > 6 && (
-                                                                <Badge className="bg-white/5 text-[muted-foreground] border-0 text-[9px] h-4 px-1">
+                                                                <Badge className="bg-white/5 text-muted-foreground border-0 text-[9px] h-4 px-1">
                                                                     +{c.skills.length - 6}
                                                                 </Badge>
                                                             )}
@@ -379,7 +379,7 @@ export default function DevelopmentPage() {
                                     <div className="flex items-center justify-between">
                                         <div>
                                             <p className="text-sm font-bold text-indigo-300">{selectedConsultant.fullName}</p>
-                                            <p className="text-xs text-[muted-foreground]">{selectedConsultant.email} | {selectedConsultant.experienceYears} lat doświadczenia</p>
+                                            <p className="text-xs text-muted-foreground">{selectedConsultant.email} | {selectedConsultant.experienceYears} lat doświadczenia</p>
                                         </div>
                                         <Badge variant="outline" className="border-indigo-500/30 text-indigo-300">
                                             {selectedConsultant.skills.length} skills
@@ -393,7 +393,7 @@ export default function DevelopmentPage() {
                                                 </Badge>
                                             ))}
                                             {selectedConsultant.skills.length > 10 && (
-                                                <Badge className="bg-white/5 text-[muted-foreground] border-0 text-[10px]">
+                                                <Badge className="bg-white/5 text-muted-foreground border-0 text-[10px]">
                                                     +{selectedConsultant.skills.length - 10}
                                                 </Badge>
                                             )}
@@ -425,11 +425,11 @@ export default function DevelopmentPage() {
                 {(!isManagerView || selectedConsultantId) && (
                     <Tabs defaultValue="cv-analysis" className="w-full">
                         <TabsList className="grid grid-cols-5 bg-white/5 border border-white/10 p-1 rounded-xl h-auto">
-                            <TabsTrigger value="cv-analysis" className="data-[state=active]:bg-[burgundy] data-[state=active]:text-white text-xs sm:text-sm py-2.5 rounded-lg">
+                            <TabsTrigger value="cv-analysis" className="data-[state=active]:bg-burgundy data-[state=active]:text-white text-xs sm:text-sm py-2.5 rounded-lg">
                                 <Brain className="w-4 h-4 mr-1.5 hidden sm:block" />
                                 Analiza CV
                             </TabsTrigger>
-                            <TabsTrigger value="career-path" className="data-[state=active]:bg-[burgundy] data-[state=active]:text-white text-xs sm:text-sm py-2.5 rounded-lg">
+                            <TabsTrigger value="career-path" className="data-[state=active]:bg-burgundy data-[state=active]:text-white text-xs sm:text-sm py-2.5 rounded-lg">
                                 <Map className="w-4 h-4 mr-1.5 hidden sm:block" />
                                 Ścieżka
                             </TabsTrigger>
@@ -450,17 +450,17 @@ export default function DevelopmentPage() {
                         {/* ====== TAB 1: ANALIZA CV ====== */}
                         <TabsContent value="cv-analysis" className="mt-6 space-y-6">
                             {!cvAnalysis && !cvLoading && (
-                                <Card className="bg-gradient-to-br from-[burgundy]/10 to-[primary]/10 border-[burgundy]/20">
+                                <Card className="bg-gradient-to-br from-burgundy/10 to-primary/10 border-burgundy/20">
                                     <CardContent className="p-8 text-center">
-                                        <Brain className="w-16 h-16 text-[primary] mx-auto mb-4" />
+                                        <Brain className="w-16 h-16 text-primary mx-auto mb-4" />
                                         <h2 className="text-2xl font-bold mb-2">
                                             {isManagerView ? `Analiza CV — ${selectedConsultant?.fullName || 'Konsultant'}` : 'AI Analiza Twojego CV'}
                                         </h2>
-                                        <p className="text-[muted-foreground] mb-6 max-w-lg mx-auto">
+                                        <p className="text-muted-foreground mb-6 max-w-lg mx-auto">
                                             AI przeanalizuje profil, oceni atrakcyjność CV na rynku IT
                                             i wskaże braki oraz rekomendacje.
                                         </p>
-                                        <Button onClick={runCVAnalysis} className="bg-[burgundy] hover:bg-purple-700 text-white px-8 py-3 text-lg" disabled={cvLoading}>
+                                        <Button onClick={runCVAnalysis} className="bg-burgundy hover:bg-purple-700 text-white px-8 py-3 text-lg" disabled={cvLoading}>
                                             <Sparkles className="w-5 h-5 mr-2" />
                                             Uruchom Analizę AI
                                         </Button>
@@ -472,9 +472,9 @@ export default function DevelopmentPage() {
                             {cvLoading && (
                                 <Card className="bg-white/5 border-white/10">
                                     <CardContent className="p-12 text-center">
-                                        <Loader2 className="w-12 h-12 animate-spin text-[primary] mx-auto mb-4" />
+                                        <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
                                         <h3 className="text-lg font-semibold mb-2">AI analizuje CV...</h3>
-                                        <p className="text-[muted-foreground] text-sm">Oceniamy umiejętności, doświadczenie i pozycję rynkową.</p>
+                                        <p className="text-muted-foreground text-sm">Oceniamy umiejętności, doświadczenie i pozycję rynkową.</p>
                                     </CardContent>
                                 </Card>
                             )}
@@ -485,7 +485,7 @@ export default function DevelopmentPage() {
                                         <Card className={`${getScoreBg(cvAnalysis.overallScore)} border p-6`}>
                                             <div className="text-center">
                                                 <div className={`text-5xl font-bold ${getScoreColor(cvAnalysis.overallScore)} mb-2`}>{cvAnalysis.overallScore}</div>
-                                                <div className="text-xs text-[muted-foreground] uppercase tracking-wider">Scoring CV</div>
+                                                <div className="text-xs text-muted-foreground uppercase tracking-wider">Scoring CV</div>
                                                 <div className="mt-2">
                                                     <Badge variant="outline" className={`${getScoreColor(cvAnalysis.overallScore)} border-current`}>
                                                         {cvAnalysis.marketPositionLabel}
@@ -500,11 +500,11 @@ export default function DevelopmentPage() {
                                             </div>
                                             <ul className="space-y-2">
                                                 {cvAnalysis.strengths.map((s, i) => (
-                                                    <li key={i} className="text-sm text-[foreground] flex items-start gap-2">
+                                                    <li key={i} className="text-sm text-foreground flex items-start gap-2">
                                                         <CheckCircle2 className="w-3.5 h-3.5 text-green-500 mt-0.5 shrink-0" />{s}
                                                     </li>
                                                 ))}
-                                                {cvAnalysis.strengths.length === 0 && <li className="text-sm text-[muted-foreground]">Brak danych do analizy</li>}
+                                                {cvAnalysis.strengths.length === 0 && <li className="text-sm text-muted-foreground">Brak danych do analizy</li>}
                                             </ul>
                                         </Card>
                                         <Card className="bg-red-500/5 border-red-500/20 p-6">
@@ -514,7 +514,7 @@ export default function DevelopmentPage() {
                                             </div>
                                             <ul className="space-y-2">
                                                 {cvAnalysis.weaknesses.map((w, i) => (
-                                                    <li key={i} className="text-sm text-[foreground] flex items-start gap-2">
+                                                    <li key={i} className="text-sm text-foreground flex items-start gap-2">
                                                         <AlertTriangle className="w-3.5 h-3.5 text-red-500 mt-0.5 shrink-0" />{w}
                                                     </li>
                                                 ))}
@@ -524,24 +524,24 @@ export default function DevelopmentPage() {
 
                                     <Card className="bg-white/5 border-white/10 p-6">
                                         <div className="flex items-center gap-2 mb-4">
-                                            <Sparkles className="w-5 h-5 text-[primary]" />
+                                            <Sparkles className="w-5 h-5 text-primary" />
                                             <h3 className="font-semibold">Rekomendacje AI — co poprawić</h3>
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                             {cvAnalysis.recommendations.map((rec, i) => (
-                                                <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-[burgundy]/5 border border-[burgundy]/10">
-                                                    <div className="w-6 h-6 rounded-full bg-[burgundy]/20 flex items-center justify-center shrink-0 mt-0.5">
-                                                        <span className="text-xs font-bold text-[primary]">{i + 1}</span>
+                                                <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-burgundy/5 border border-burgundy/10">
+                                                    <div className="w-6 h-6 rounded-full bg-burgundy/20 flex items-center justify-center shrink-0 mt-0.5">
+                                                        <span className="text-xs font-bold text-primary">{i + 1}</span>
                                                     </div>
-                                                    <p className="text-sm text-[foreground]">{rec}</p>
+                                                    <p className="text-sm text-foreground">{rec}</p>
                                                 </div>
                                             ))}
                                         </div>
                                     </Card>
 
                                     <div className="flex items-center gap-2 p-4 rounded-lg bg-white/5 border border-white/10">
-                                        <FileText className="w-4 h-4 text-[muted-foreground] shrink-0" />
-                                        <p className="text-sm text-[foreground]">{cvAnalysis.summaryText}</p>
+                                        <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
+                                        <p className="text-sm text-foreground">{cvAnalysis.summaryText}</p>
                                     </div>
 
                                     <div className="flex justify-center">
@@ -556,14 +556,14 @@ export default function DevelopmentPage() {
                         {/* ====== TAB 2: ŚCIEŻKA ROZWOJU ====== */}
                         <TabsContent value="career-path" className="mt-6 space-y-6">
                             {!careerPath && !careerLoading && (
-                                <Card className="bg-gradient-to-br from-[primary]/10 to-[foreground]/10 border-[primary]/20">
+                                <Card className="bg-gradient-to-br from-primary/10 to-foreground/10 border-primary/20">
                                     <CardContent className="p-8 text-center">
-                                        <Map className="w-16 h-16 text-[foreground] mx-auto mb-4" />
+                                        <Map className="w-16 h-16 text-foreground mx-auto mb-4" />
                                         <h2 className="text-2xl font-bold mb-2">Ścieżka Kariery AI</h2>
-                                        <p className="text-[muted-foreground] mb-6 max-w-lg mx-auto">
+                                        <p className="text-muted-foreground mb-6 max-w-lg mx-auto">
                                             AI zasugeruje optymalną ścieżkę rozwoju: techniczną, zarządczą, analityczną lub hybrydową.
                                         </p>
-                                        <Button onClick={runCareerPath} className="bg-[burgundy] hover:bg-blue-700 text-white px-8 py-3 text-lg" disabled={careerLoading}>
+                                        <Button onClick={runCareerPath} className="bg-burgundy hover:bg-blue-700 text-white px-8 py-3 text-lg" disabled={careerLoading}>
                                             <Sparkles className="w-5 h-5 mr-2" />Wyznacz Ścieżkę AI
                                         </Button>
                                         {careerError && <p className="text-red-400 text-sm mt-4">{careerError}</p>}
@@ -574,7 +574,7 @@ export default function DevelopmentPage() {
                             {careerLoading && (
                                 <Card className="bg-white/5 border-white/10">
                                     <CardContent className="p-12 text-center">
-                                        <Loader2 className="w-12 h-12 animate-spin text-[foreground] mx-auto mb-4" />
+                                        <Loader2 className="w-12 h-12 animate-spin text-foreground mx-auto mb-4" />
                                         <h3 className="text-lg font-semibold mb-2">AI projektuje ścieżkę kariery...</h3>
                                     </CardContent>
                                 </Card>
@@ -584,17 +584,17 @@ export default function DevelopmentPage() {
                                 <>
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         {[careerPath.primaryPath, ...careerPath.alternativePaths].map((path, idx) => (
-                                            <Card key={path.id || idx} className={`cursor-pointer transition-all ${selectedPathIndex === idx ? 'bg-[primary]/15 border-[primary]/40 ring-1 ring-[primary]/30' : 'bg-white/5 border-white/10 hover:border-white/20'}`} onClick={() => setSelectedPathIndex(idx)}>
+                                            <Card key={path.id || idx} className={`cursor-pointer transition-all ${selectedPathIndex === idx ? 'bg-primary/15 border-primary/40 ring-1 ring-[primary]/30' : 'bg-white/5 border-white/10 hover:border-white/20'}`} onClick={() => setSelectedPathIndex(idx)}>
                                                 <CardContent className="p-5">
                                                     <div className="flex items-center gap-3 mb-2">
                                                         <span className="text-2xl">{path.icon || '🎯'}</span>
                                                         <div>
                                                             <h3 className="font-bold text-sm">{path.name}</h3>
-                                                            {idx === 0 && <Badge className="bg-[primary]/20 text-blue-300 border-0 text-[10px] mt-0.5">Rekomendowana</Badge>}
+                                                            {idx === 0 && <Badge className="bg-primary/20 text-blue-300 border-0 text-[10px] mt-0.5">Rekomendowana</Badge>}
                                                         </div>
                                                     </div>
-                                                    <p className="text-xs text-[muted-foreground] line-clamp-2">{path.description}</p>
-                                                    <div className="mt-3 flex items-center gap-2 text-xs text-[muted-foreground]">
+                                                    <p className="text-xs text-muted-foreground line-clamp-2">{path.description}</p>
+                                                    <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
                                                         <Clock className="w-3 h-3" />~{path.estimatedTimeMonths || '?'} mies.
                                                     </div>
                                                 </CardContent>
@@ -612,24 +612,24 @@ export default function DevelopmentPage() {
                                                     <span className="text-3xl">{selected.icon}</span>
                                                     <div>
                                                         <h2 className="text-xl font-bold">{selected.name}</h2>
-                                                        <p className="text-sm text-[muted-foreground]">{selected.description}</p>
+                                                        <p className="text-sm text-muted-foreground">{selected.description}</p>
                                                     </div>
                                                 </div>
                                                 <div className="relative">
-                                                    <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gradient-to-b from-[primary] via-[burgundy] to-green-500" />
+                                                    <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gradient-to-b from-primary via-burgundy to-green-500" />
                                                     <div className="space-y-6">
                                                         {selected.stages.map((stage, i) => (
                                                             <div key={i} className="relative pl-12">
-                                                                <div className={`absolute left-2 top-1 w-5 h-5 rounded-full border-2 ${i === 0 ? 'bg-[primary] border-[foreground]' : i === selected.stages.length - 1 ? 'bg-green-500 border-green-400' : 'bg-[burgundy] border-[primary]'}`} />
+                                                                <div className={`absolute left-2 top-1 w-5 h-5 rounded-full border-2 ${i === 0 ? 'bg-primary border-foreground' : i === selected.stages.length - 1 ? 'bg-green-500 border-green-400' : 'bg-burgundy border-primary'}`} />
                                                                 <div className="bg-white/5 rounded-lg p-4 border border-white/10">
                                                                     <div className="flex items-center justify-between mb-2">
                                                                         <h4 className="font-bold text-sm">{stage.title}</h4>
                                                                         <Badge variant="outline" className="text-[10px] border-white/20">{stage.timeframe}</Badge>
                                                                     </div>
-                                                                    <p className="text-xs text-[muted-foreground] mb-3">{stage.description}</p>
+                                                                    <p className="text-xs text-muted-foreground mb-3">{stage.description}</p>
                                                                     <div className="flex flex-wrap gap-1">
                                                                         {stage.skills.map(skill => (
-                                                                            <Badge key={skill} className="bg-[primary]/10 text-blue-300 border-0 text-[10px]">{skill}</Badge>
+                                                                            <Badge key={skill} className="bg-primary/10 text-blue-300 border-0 text-[10px]">{skill}</Badge>
                                                                         ))}
                                                                     </div>
                                                                 </div>
@@ -655,9 +655,9 @@ export default function DevelopmentPage() {
                                     })()}
 
                                     {careerPath.reasoning && (
-                                        <div className="flex items-start gap-2 p-4 rounded-lg bg-[primary]/5 border border-[primary]/20">
-                                            <Brain className="w-4 h-4 text-[foreground] mt-0.5 shrink-0" />
-                                            <p className="text-sm text-[foreground]">{careerPath.reasoning}</p>
+                                        <div className="flex items-start gap-2 p-4 rounded-lg bg-primary/5 border border-primary/20">
+                                            <Brain className="w-4 h-4 text-foreground mt-0.5 shrink-0" />
+                                            <p className="text-sm text-foreground">{careerPath.reasoning}</p>
                                         </div>
                                     )}
 
@@ -673,18 +673,18 @@ export default function DevelopmentPage() {
                         {/* ====== TAB 3: PLAN ROZWOJU 12M ====== */}
                         <TabsContent value="dev-plan" className="mt-6 space-y-6">
                             {!devPlan && !planLoading && (
-                                <Card className="bg-gradient-to-br from-green-500/10 to-[primary]/10 border-green-500/20">
+                                <Card className="bg-gradient-to-br from-green-500/10 to-primary/10 border-green-500/20">
                                     <CardContent className="p-8 text-center">
                                         <Target className="w-16 h-16 text-green-400 mx-auto mb-4" />
                                         <h2 className="text-2xl font-bold mb-2">Plan Rozwoju — 12 Miesięcy</h2>
-                                        <p className="text-[muted-foreground] mb-6 max-w-lg mx-auto">
+                                        <p className="text-muted-foreground mb-6 max-w-lg mx-auto">
                                             AI wygeneruje spersonalizowany roadmap: kwartał po kwartale.
                                         </p>
                                         <div className="flex flex-col items-center gap-3">
                                             <Button onClick={runDevPlan} className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg" disabled={planLoading}>
                                                 <Sparkles className="w-5 h-5 mr-2" />Generuj Plan AI
                                             </Button>
-                                            {!careerPath && <p className="text-xs text-[muted-foreground]">Tip: Najpierw uruchom &quot;Ścieżkę Rozwoju&quot; — plan będzie lepiej dopasowany.</p>}
+                                            {!careerPath && <p className="text-xs text-muted-foreground">Tip: Najpierw uruchom &quot;Ścieżkę Rozwoju&quot; — plan będzie lepiej dopasowany.</p>}
                                         </div>
                                         {planError && <p className="text-red-400 text-sm mt-4">{planError}</p>}
                                     </CardContent>
@@ -703,7 +703,7 @@ export default function DevelopmentPage() {
                             {devPlan && !planLoading && (
                                 <>
                                     {devPlan.estimatedRateIncrease && (
-                                        <Card className="bg-gradient-to-r from-green-500/10 to-[primary]/10 border-green-500/20 p-6">
+                                        <Card className="bg-gradient-to-r from-green-500/10 to-primary/10 border-green-500/20 p-6">
                                             <div className="flex items-center justify-center gap-4">
                                                 <TrendingUp className="w-8 h-8 text-green-400" />
                                                 <div className="text-center">
@@ -725,22 +725,22 @@ export default function DevelopmentPage() {
                                                         </div>
                                                         <div>
                                                             <h3 className={`font-bold ${colors.text}`}>{q.title}</h3>
-                                                            <p className="text-xs text-[muted-foreground]">Miesiące {i * 3 + 1}–{(i + 1) * 3}</p>
+                                                            <p className="text-xs text-muted-foreground">Miesiące {i * 3 + 1}–{(i + 1) * 3}</p>
                                                         </div>
                                                     </div>
                                                     <div className="mb-3">
-                                                        <p className="text-[10px] uppercase tracking-wider text-[muted-foreground] mb-1.5">Cele</p>
+                                                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Cele</p>
                                                         <ul className="space-y-1">
                                                             {q.goals.map((goal, gi) => (
-                                                                <li key={gi} className="text-xs text-[foreground] flex items-start gap-2">
-                                                                    <Target className="w-3 h-3 mt-0.5 shrink-0 text-[muted-foreground]" />{goal}
+                                                                <li key={gi} className="text-xs text-foreground flex items-start gap-2">
+                                                                    <Target className="w-3 h-3 mt-0.5 shrink-0 text-muted-foreground" />{goal}
                                                                 </li>
                                                             ))}
                                                         </ul>
                                                     </div>
                                                     {q.skills.length > 0 && (
                                                         <div className="mb-3">
-                                                            <p className="text-[10px] uppercase tracking-wider text-[muted-foreground] mb-1.5">Technologie</p>
+                                                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Technologie</p>
                                                             <div className="flex flex-wrap gap-1">
                                                                 {q.skills.map(skill => (
                                                                     <Badge key={skill} className={`${colors.bg} ${colors.text} border-0 text-[10px]`}>{skill}</Badge>
@@ -750,7 +750,7 @@ export default function DevelopmentPage() {
                                                     )}
                                                     {q.certifications.length > 0 && (
                                                         <div className="mb-3">
-                                                            <p className="text-[10px] uppercase tracking-wider text-[muted-foreground] mb-1.5">Certyfikaty</p>
+                                                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Certyfikaty</p>
                                                             <div className="flex flex-wrap gap-1">
                                                                 {q.certifications.map(cert => (
                                                                     <Badge key={cert} variant="outline" className="border-amber-500/30 text-amber-300 text-[10px]">
@@ -762,11 +762,11 @@ export default function DevelopmentPage() {
                                                     )}
                                                     {q.actions.length > 0 && (
                                                         <div>
-                                                            <p className="text-[10px] uppercase tracking-wider text-[muted-foreground] mb-1.5">Akcje</p>
+                                                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Akcje</p>
                                                             <ul className="space-y-1">
                                                                 {q.actions.map((action, ai) => (
-                                                                    <li key={ai} className="text-xs text-[muted-foreground] flex items-start gap-2">
-                                                                        <ChevronRight className="w-3 h-3 mt-0.5 shrink-0 text-[muted-foreground]" />{action}
+                                                                    <li key={ai} className="text-xs text-muted-foreground flex items-start gap-2">
+                                                                        <ChevronRight className="w-3 h-3 mt-0.5 shrink-0 text-muted-foreground" />{action}
                                                                     </li>
                                                                 ))}
                                                             </ul>
@@ -789,7 +789,7 @@ export default function DevelopmentPage() {
                                                         <div className="w-5 h-5 rounded bg-amber-500/20 flex items-center justify-center shrink-0">
                                                             <span className="text-[10px] font-bold text-amber-400">{i + 1}</span>
                                                         </div>
-                                                        <span className="text-xs text-[foreground]">{m}</span>
+                                                        <span className="text-xs text-foreground">{m}</span>
                                                     </div>
                                                 ))}
                                             </div>
@@ -799,7 +799,7 @@ export default function DevelopmentPage() {
                                     {devPlan.summaryText && (
                                         <div className="flex items-start gap-2 p-4 rounded-lg bg-green-500/5 border border-green-500/20">
                                             <Info className="w-4 h-4 text-green-400 mt-0.5 shrink-0" />
-                                            <p className="text-sm text-[foreground]">{devPlan.summaryText}</p>
+                                            <p className="text-sm text-foreground">{devPlan.summaryText}</p>
                                         </div>
                                     )}
 
@@ -815,13 +815,13 @@ export default function DevelopmentPage() {
                         {/* ====== TAB 4: DOPASOWANIE PROJEKTÓW (NEW) ====== */}
                         <TabsContent value="project-match" className="mt-6 space-y-6">
                             {!projectMatching && !projectMatchLoading && (
-                                <Card className="bg-gradient-to-br from-[foreground]/10 to-teal-500/10 border-[foreground]/20">
+                                <Card className="bg-gradient-to-br from-foreground/10 to-teal-500/10 border-foreground/20">
                                     <CardContent className="p-8 text-center">
-                                        <Briefcase className="w-16 h-16 text-[foreground] mx-auto mb-4" />
+                                        <Briefcase className="w-16 h-16 text-foreground mx-auto mb-4" />
                                         <h2 className="text-2xl font-bold mb-2">
                                             {isManagerView ? 'Dopasowanie Projektów do Konsultanta' : 'Twoje Dopasowanie do Projektów'}
                                         </h2>
-                                        <p className="text-[muted-foreground] mb-6 max-w-lg mx-auto">
+                                        <p className="text-muted-foreground mb-6 max-w-lg mx-auto">
                                             AI przeanalizuje wszystkie projekty z bazy i uszereguje je od najlepszego dopasowania do najsłabszego.
                                             Dla każdego projektu otrzymasz rekomendację.
                                         </p>
@@ -837,9 +837,9 @@ export default function DevelopmentPage() {
                             {projectMatchLoading && (
                                 <Card className="bg-white/5 border-white/10">
                                     <CardContent className="p-12 text-center">
-                                        <Loader2 className="w-12 h-12 animate-spin text-[foreground] mx-auto mb-4" />
+                                        <Loader2 className="w-12 h-12 animate-spin text-foreground mx-auto mb-4" />
                                         <h3 className="text-lg font-semibold mb-2">AI rankuje projekty...</h3>
-                                        <p className="text-[muted-foreground] text-sm">Analizujemy dopasowanie umiejętności do wymagań projektów.</p>
+                                        <p className="text-muted-foreground text-sm">Analizujemy dopasowanie umiejętności do wymagań projektów.</p>
                                     </CardContent>
                                 </Card>
                             )}
@@ -854,11 +854,11 @@ export default function DevelopmentPage() {
                                             </p>
                                             <p className="text-[10px] text-green-400/60">Doskonałe</p>
                                         </Card>
-                                        <Card className="bg-[primary]/5 border-[primary]/20 p-4 text-center">
-                                            <p className="text-2xl font-bold text-[foreground]">
+                                        <Card className="bg-primary/5 border-primary/20 p-4 text-center">
+                                            <p className="text-2xl font-bold text-foreground">
                                                 {projectMatching.matches.filter(m => m.fitLevel === 'good').length}
                                             </p>
-                                            <p className="text-[10px] text-[foreground]/60">Dobre</p>
+                                            <p className="text-[10px] text-foreground/60">Dobre</p>
                                         </Card>
                                         <Card className="bg-amber-500/5 border-amber-500/20 p-4 text-center">
                                             <p className="text-2xl font-bold text-amber-400">
@@ -868,15 +868,15 @@ export default function DevelopmentPage() {
                                         </Card>
                                         <Card className="bg-white/5 border-white/10 p-4 text-center">
                                             <p className="text-2xl font-bold">{projectMatching.totalProjectsAnalyzed}</p>
-                                            <p className="text-[10px] text-[muted-foreground]">Projektów w bazie</p>
+                                            <p className="text-[10px] text-muted-foreground">Projektów w bazie</p>
                                         </Card>
                                     </div>
 
                                     {/* AI Summary */}
                                     {projectMatching.aiSummary && (
-                                        <div className="flex items-start gap-2 p-4 rounded-lg bg-[foreground]/5 border border-[foreground]/20">
-                                            <Brain className="w-4 h-4 text-[foreground] mt-0.5 shrink-0" />
-                                            <p className="text-sm text-[foreground]">{projectMatching.aiSummary}</p>
+                                        <div className="flex items-start gap-2 p-4 rounded-lg bg-foreground/5 border border-foreground/20">
+                                            <Brain className="w-4 h-4 text-foreground mt-0.5 shrink-0" />
+                                            <p className="text-sm text-foreground">{projectMatching.aiSummary}</p>
                                         </div>
                                     )}
 
@@ -890,11 +890,11 @@ export default function DevelopmentPage() {
                                                         <div className="flex items-start justify-between gap-4">
                                                             <div className="flex-1">
                                                                 <div className="flex items-center gap-2 mb-1">
-                                                                    <span className="text-xs font-bold text-[muted-foreground] w-6">#{idx + 1}</span>
+                                                                    <span className="text-xs font-bold text-muted-foreground w-6">#{idx + 1}</span>
                                                                     <h4 className="font-semibold text-sm">{match.projectTitle}</h4>
                                                                 </div>
                                                                 {match.description && (
-                                                                    <p className="text-xs text-[muted-foreground] ml-8 mb-2 line-clamp-2">{match.description}</p>
+                                                                    <p className="text-xs text-muted-foreground ml-8 mb-2 line-clamp-2">{match.description}</p>
                                                                 )}
                                                             </div>
                                                             <div className="text-right shrink-0">
@@ -929,8 +929,8 @@ export default function DevelopmentPage() {
 
                                                         {/* AI Recommendation */}
                                                         {match.aiRecommendation && (
-                                                            <div className="ml-8 mt-2 p-2 rounded bg-white/5 text-xs text-[muted-foreground] flex items-start gap-2">
-                                                                <Sparkles className="w-3 h-3 text-[foreground] mt-0.5 shrink-0" />
+                                                            <div className="ml-8 mt-2 p-2 rounded bg-white/5 text-xs text-muted-foreground flex items-start gap-2">
+                                                                <Sparkles className="w-3 h-3 text-foreground mt-0.5 shrink-0" />
                                                                 {match.aiRecommendation}
                                                             </div>
                                                         )}
@@ -940,7 +940,7 @@ export default function DevelopmentPage() {
                                         })}
 
                                         {projectMatching.matches.length === 0 && (
-                                            <div className="text-center py-8 text-[muted-foreground]">
+                                            <div className="text-center py-8 text-muted-foreground">
                                                 Brak projektów do analizy.
                                             </div>
                                         )}
@@ -963,39 +963,39 @@ export default function DevelopmentPage() {
                                         <BarChart3 className="w-5 h-5 text-amber-400" />
                                         Analiza Kompetencji vs Projekty
                                     </CardTitle>
-                                    <p className="text-sm text-[muted-foreground]">
+                                    <p className="text-sm text-muted-foreground">
                                         Porównanie umiejętności z wymaganiami Top {analysis?.totalAnalyzed || 10} projektów ({analysis?.totalProjectsInDb || 0} ogółem).
                                     </p>
                                 </CardHeader>
                                 <CardContent>
                                     {loading ? (
-                                        <div className="flex items-center gap-2 text-sm text-[muted-foreground] py-8 justify-center">
+                                        <div className="flex items-center gap-2 text-sm text-muted-foreground py-8 justify-center">
                                             <Loader2 className="w-4 h-4 animate-spin" /> Analizowanie...
                                         </div>
                                     ) : analysis ? (
                                         <div className="space-y-4">
                                             <div className="grid grid-cols-4 gap-3">
-                                                <div className="text-center p-3 rounded-lg bg-[burgundy]/10 border border-[burgundy]/20">
-                                                    <p className="text-xl font-bold text-[primary]">{analysis.userSkillsCount || 0}</p>
-                                                    <p className="text-[10px] text-[muted-foreground]">Skills</p>
+                                                <div className="text-center p-3 rounded-lg bg-burgundy/10 border border-burgundy/20">
+                                                    <p className="text-xl font-bold text-primary">{analysis.userSkillsCount || 0}</p>
+                                                    <p className="text-[10px] text-muted-foreground">Skills</p>
                                                 </div>
                                                 <div className="text-center p-3 rounded-lg bg-white/5 border border-white/10">
                                                     <p className="text-xl font-bold">{analysis.totalAnalyzed || 0}</p>
-                                                    <p className="text-[10px] text-[muted-foreground]">Analizowane</p>
+                                                    <p className="text-[10px] text-muted-foreground">Analizowane</p>
                                                 </div>
                                                 <div className="text-center p-3 rounded-lg bg-green-500/10 border border-green-500/20">
                                                     <p className="text-xl font-bold text-green-400">{perfectCount}</p>
-                                                    <p className="text-[10px] text-[muted-foreground]">Idealne</p>
+                                                    <p className="text-[10px] text-muted-foreground">Idealne</p>
                                                 </div>
                                                 <div className="text-center p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
                                                     <p className="text-xl font-bold text-amber-400">{gapsCount}</p>
-                                                    <p className="text-[10px] text-[muted-foreground]">Z brakami</p>
+                                                    <p className="text-[10px] text-muted-foreground">Z brakami</p>
                                                 </div>
                                             </div>
 
                                             {uniqueMissingSkills.length > 0 && (
                                                 <div>
-                                                    <p className="text-xs text-[muted-foreground] mb-2">Najczęściej brakujące:</p>
+                                                    <p className="text-xs text-muted-foreground mb-2">Najczęściej brakujące:</p>
                                                     <div className="flex flex-wrap gap-1">
                                                         {uniqueMissingSkills.slice(0, 12).map(skill => (
                                                             <Badge key={skill} variant="outline" className="border-amber-500/30 text-amber-300 bg-amber-500/10 text-[10px]">{skill}</Badge>
@@ -1012,7 +1012,7 @@ export default function DevelopmentPage() {
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="text-center py-8 text-[muted-foreground] text-sm">Brak danych.</div>
+                                        <div className="text-center py-8 text-muted-foreground text-sm">Brak danych.</div>
                                     )}
                                 </CardContent>
                             </Card>
@@ -1037,12 +1037,12 @@ export default function DevelopmentPage() {
                                             </div>
                                         </div>
                                     </Card>
-                                    <Card className="bg-[burgundy]/5 border-[burgundy]/20 p-4">
+                                    <Card className="bg-burgundy/5 border-burgundy/20 p-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="p-2 rounded-lg bg-[burgundy]/20"><TrendingUp className="w-5 h-5 text-[primary]" /></div>
+                                            <div className="p-2 rounded-lg bg-burgundy/20"><TrendingUp className="w-5 h-5 text-primary" /></div>
                                             <div>
-                                                <p className="text-2xl font-bold text-[primary]">{Math.round((perfectCount / analysis.totalAnalyzed) * 100)}%</p>
-                                                <p className="text-xs text-[primary]/60">Gotowość</p>
+                                                <p className="text-2xl font-bold text-primary">{Math.round((perfectCount / analysis.totalAnalyzed) * 100)}%</p>
+                                                <p className="text-xs text-primary/60">Gotowość</p>
                                             </div>
                                         </div>
                                     </Card>
@@ -1056,20 +1056,20 @@ export default function DevelopmentPage() {
 
             {/* Skill Gaps Dialog */}
             <Dialog open={showGapsDialog} onOpenChange={setShowGapsDialog}>
-                <DialogContent className="bg-[background] border-white/10 text-white max-w-2xl max-h-[80vh] overflow-y-auto">
+                <DialogContent className="bg-background border-white/10 text-white max-w-2xl max-h-[80vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Analiza Kompetencji (Top {analysis?.totalAnalyzed || 0})</DialogTitle>
-                        <DialogDescription className="text-[muted-foreground]">Szczegółowa analiza dopasowania.</DialogDescription>
+                        <DialogDescription className="text-muted-foreground">Szczegółowa analiza dopasowania.</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 mt-4">
                         {analysis?.gaps.map((project) => (
-                            <div key={project.projectId} className={`p-4 rounded-lg border ${project.status === 'has_gaps' ? 'bg-red-500/5 border-red-500/20' : project.status === 'no_requirements' ? 'bg-[muted-foreground]/5 border-[muted-foreground]/20' : 'bg-green-500/5 border-green-500/20'}`}>
+                            <div key={project.projectId} className={`p-4 rounded-lg border ${project.status === 'has_gaps' ? 'bg-red-500/5 border-red-500/20' : project.status === 'no_requirements' ? 'bg-muted-foreground/5 border-muted-foreground/20' : 'bg-green-500/5 border-green-500/20'}`}>
                                 <h4 className="font-semibold text-white text-sm">{project.projectTitle}</h4>
                                 <div className="flex items-center gap-2 mt-1">
-                                    <span className={`text-xs font-medium px-2 py-0.5 rounded ${project.status === 'has_gaps' ? 'bg-red-500/20 text-red-400' : project.status === 'no_requirements' ? 'bg-[muted-foreground]/20 text-[muted-foreground]' : 'bg-green-500/20 text-green-400'}`}>
+                                    <span className={`text-xs font-medium px-2 py-0.5 rounded ${project.status === 'has_gaps' ? 'bg-red-500/20 text-red-400' : project.status === 'no_requirements' ? 'bg-muted-foreground/20 text-muted-foreground' : 'bg-green-500/20 text-green-400'}`}>
                                         {project.status === 'has_gaps' ? 'Braki' : project.status === 'no_requirements' ? 'Brak wymagań' : 'Zgodność'}
                                     </span>
-                                    <span className="text-xs text-[muted-foreground]">{project.matchScore}%</span>
+                                    <span className="text-xs text-muted-foreground">{project.matchScore}%</span>
                                 </div>
                                 {project.matchedSkills.length > 0 && (
                                     <div className="mt-2 flex flex-wrap gap-1">

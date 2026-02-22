@@ -81,7 +81,7 @@ export default function TestNotificationsPage() {
             <Card className="bg-zinc-950 border-white/10 text-white">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                        <Bell className="w-6 h-6 text-[foreground]" />
+                        <Bell className="w-6 h-6 text-foreground" />
                         Test Systemu Powiadomień
                     </CardTitle>
                     <CardDescription>
@@ -96,7 +96,7 @@ export default function TestNotificationsPage() {
                             variant="outline"
                             className="h-24 flex flex-col gap-2 border-white/10 hover:bg-white/5"
                         >
-                            <Info className="w-6 h-6 text-[foreground]" />
+                            <Info className="w-6 h-6 text-foreground" />
                             <span>Zwykłe info</span>
                         </Button>
 
@@ -131,7 +131,7 @@ export default function TestNotificationsPage() {
                         </Button>
                     </div>
 
-                    <div className="p-4 bg-white/5 rounded-lg text-sm text-[muted-foreground] mt-4">
+                    <div className="p-4 bg-white/5 rounded-lg text-sm text-muted-foreground mt-4">
                         <p><strong>Jak testować:</strong></p>
                         <ol className="list-decimal list-inside space-y-1 mt-2">
                             <li>Kliknij dowolny przycisk powyżej via ten panel.</li>

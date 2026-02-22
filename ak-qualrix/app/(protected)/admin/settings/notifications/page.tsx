@@ -119,7 +119,7 @@ export default function NotificationsSettingsPage() {
                         )}
                     </Button>
 
-                    <div className="mt-6 p-4 rounded-lg bg-[primary]/5 border border-[primary]/10">
+                    <div className="mt-6 p-4 rounded-lg bg-primary/5 border border-primary/10">
                         <p className="text-xs text-blue-300 font-medium mb-2">ℹ️ Informacja</p>
                         <p className="text-xs text-gray-400 leading-relaxed">
                             Powiadomienia email są wysyłane automatycznie po każdym nowym zgłoszeniu.

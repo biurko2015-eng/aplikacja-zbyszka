@@ -209,7 +209,7 @@ export default async function LoyaltyPage() {
                         <CardContent className="space-y-6">
                             {/* Ambasador */}
                             <div className="flex flex-col md:flex-row gap-6 p-4 border rounded-lg bg-card hover:bg-muted/50 transition-colors">
-                                <div className="md:w-16 md:h-16 flex items-center justify-center rounded-full bg-blue-100 text-[burgundy] dark:bg-blue-900/30 dark:text-[foreground] shrink-0">
+                                <div className="md:w-16 md:h-16 flex items-center justify-center rounded-full bg-blue-100 text-burgundy dark:bg-blue-900/30 dark:text-foreground shrink-0">
                                     <Users className="h-8 w-8" />
                                 </div>
                                 <div className="space-y-2 flex-1">
@@ -235,7 +235,7 @@ export default async function LoyaltyPage() {
 
                             {/* Weryfikator */}
                             <div className="flex flex-col md:flex-row gap-6 p-4 border rounded-lg bg-card hover:bg-muted/50 transition-colors">
-                                <div className="md:w-16 md:h-16 flex items-center justify-center rounded-full bg-purple-100 text-[burgundy] dark:bg-purple-900/30 dark:text-[primary] shrink-0">
+                                <div className="md:w-16 md:h-16 flex items-center justify-center rounded-full bg-purple-100 text-burgundy dark:bg-purple-900/30 dark:text-primary shrink-0">
                                     <Search className="h-8 w-8" />
                                 </div>
                                 <div className="space-y-2 flex-1">
