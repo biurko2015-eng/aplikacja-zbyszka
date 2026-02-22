@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 
 export const dynamic = 'force-dynamic'
 import { AppLayout } from '@/components/layout/AppLayout'
@@ -45,12 +46,8 @@ export default async function ProtectedLayout({
         const role = isSuperAdmin(user.email) ? 'administrator' : baseRole
 
         if (role === 'centrala' || role === 'administrator' || role === 'admin') {
-            try {
-                const mfaVerified = (await import('next/headers')).cookies().get('mfa_verified')?.value === 'true'
-                if (!mfaVerified) redirect('/login')
-            } catch {
-                redirect('/login')
-            }
+            const mfaVerified = cookies().get('mfa_verified')?.value === 'true'
+            if (!mfaVerified) redirect('/login')
         }
 
         let permissionRole: PermissionRole = 'consultant'
