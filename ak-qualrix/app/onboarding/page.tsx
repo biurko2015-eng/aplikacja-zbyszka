@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Loader2, Search, FileText, Upload, CheckCircle2 } from 'lucide-react'
-import { updateProfileFull, searchCandidatesByName, claimCandidate } from '@/lib/actions/matching'
+import { updateProfileFull, searchCandidatesByName, claimCandidate, completeOnboarding } from '@/lib/actions/matching'
 import { uploadCV, generateProfileFromCV } from '@/lib/actions/files'
 import { toast } from 'sonner'
 import { toastSuccess } from '@/lib/toast-success'
@@ -119,7 +119,7 @@ export default function OnboardingPage() {
                 return
             }
 
-            document.cookie = 'onboarding_done=true; path=/; max-age=' + (60 * 60 * 24 * 30)
+            await completeOnboarding()
             toastSuccess('Profil utworzony pomyslnie!')
             setStep('done')
             router.push('/home')

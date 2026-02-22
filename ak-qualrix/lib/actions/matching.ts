@@ -321,18 +321,35 @@ export async function searchCandidatesByName(query: string) {
     if (!user) throw new Error('Not authenticated')
 
     const searchTerm = query.trim()
+    const cols = 'id, full_name, email, skills, bio, cv_url, created_at, original_filename'
 
-    const { data: candidates, error } = await supabase
+    // FTS via GIN index on search_vector (fast at 50K+ rows)
+    const ftsQuery = searchTerm.split(/\s+/).filter(Boolean).join(' & ')
+    const { data: ftsCandidates, error: ftsError } = await supabase
         .from('candidates')
-        .select('id, full_name, email, skills, bio, cv_url, created_at, original_filename')
+        .select(cols)
         .eq('candidate_status', 'kandydat')
-        .ilike('full_name', `%${searchTerm}%`)
+        .textSearch('search_vector', ftsQuery, { type: 'plain', config: 'simple' })
         .order('full_name')
         .limit(20)
 
-    if (error) {
-        console.error('[Search] Error searching candidates:', error)
-        return []
+    let candidates = ftsCandidates
+
+    if (ftsError || !candidates?.length) {
+        // Fallback: ILIKE for partial/short queries (uses B-tree on full_name for prefix)
+        const { data: ilikeCandidates, error: ilikeError } = await supabase
+            .from('candidates')
+            .select(cols)
+            .eq('candidate_status', 'kandydat')
+            .ilike('full_name', `%${searchTerm}%`)
+            .order('full_name')
+            .limit(20)
+
+        if (ilikeError) {
+            console.error('[Search] Error searching candidates:', ilikeError)
+            return []
+        }
+        candidates = ilikeCandidates
     }
 
     return (candidates || []).map(c => ({
@@ -345,6 +362,24 @@ export async function searchCandidatesByName(query: string) {
         created_at: c.created_at,
         original_filename: c.original_filename,
     }))
+}
+
+export async function completeOnboarding() {
+    const { cookies } = await import('next/headers')
+    cookies().set('onboarding_done', 'true', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        path: '/',
+        maxAge: 60 * 60 * 24 * 30,
+    })
+
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+        await supabase.from('profiles').update({ onboarding_completed: true }).eq('id', user.id)
+    }
+
+    return { success: true }
 }
 
 export async function claimCandidate(candidateId: string) {
