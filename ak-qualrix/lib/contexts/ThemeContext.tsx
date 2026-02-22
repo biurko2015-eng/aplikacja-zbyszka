@@ -37,7 +37,7 @@ export const THEMES: Record<ThemeId, ThemeConfig> = {
         label: 'B2BNETWORK',
         brandName: 'B2BNETWORK',
         className: 'theme-b2bnetwork',
-        preview: { bg: '#0B1628', primary: '#0066CC', card: '#122240' },
+        preview: { bg: '#142136', primary: '#f43a48', card: '#1C2D45' },
     },
 }
 

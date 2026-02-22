@@ -139,33 +139,34 @@
   }
 
   /* ═══════════════════════════════════════════════════════════════
-     THEME: B2BNETWORK — Corporate Blue on Deep Navy
+     THEME: B2BNETWORK — Red Coral on Deep Navy
+     Brand colors: #f43a48 (red), #142136 (navy), #1890d7 (sky blue)
      ═══════════════════════════════════════════════════════════════ */
   .theme-b2bnetwork {
-    --background: 216 56% 10%;
+    --background: 218 47% 14%;
     --foreground: 210 40% 97%;
-    --card: 216 45% 13%;
+    --card: 218 42% 17%;
     --card-foreground: 210 40% 97%;
-    --popover: 216 45% 13%;
+    --popover: 218 42% 17%;
     --popover-foreground: 210 40% 97%;
-    --primary: 210 100% 40%;
+    --primary: 355 90% 59%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 216 35% 16%;
+    --secondary: 218 35% 20%;
     --secondary-foreground: 210 40% 97%;
-    --muted: 216 28% 20%;
+    --muted: 218 28% 24%;
     --muted-foreground: 215 20% 65%;
-    --accent: 216 35% 16%;
+    --accent: 218 35% 20%;
     --accent-foreground: 210 40% 97%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 216 28% 20%;
-    --input: 216 35% 16%;
-    --ring: 210 100% 40%;
-    --burgundy: 195 100% 42%;
-    --burgundy-light: 195 80% 55%;
+    --border: 218 28% 24%;
+    --input: 218 35% 20%;
+    --ring: 355 90% 59%;
+    --burgundy: 355 90% 50%;
+    --burgundy-light: 355 78% 65%;
     --success: 142 76% 36%;
-    --warning: 25 95% 53%;
-    --tech: 210 100% 50%;
+    --warning: 38 92% 50%;
+    --tech: 201 80% 47%;
   }
 }
 
