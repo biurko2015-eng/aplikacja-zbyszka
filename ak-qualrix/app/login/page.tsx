@@ -204,6 +204,7 @@ export default function LoginPage() {
                                     placeholder="name@b2bnetwork.pl"
                                     required
                                     disabled={loading}
+                                    data-testid="login-email"
                                     className="login-input-glow transition-all duration-200"
                                 />
                             </div>
@@ -250,6 +251,7 @@ export default function LoginPage() {
                                         type={showPassword ? 'text' : 'password'}
                                         required
                                         disabled={loading}
+                                        data-testid="login-password"
                                         className="login-input-glow transition-all duration-200 pr-10"
                                     />
                                     <button
@@ -270,7 +272,7 @@ export default function LoginPage() {
 
                             {/* Error message with animation */}
                             {error && (
-                                <div className="login-msg-enter flex items-start gap-2 text-sm text-destructive bg-destructive/10 p-3 rounded-md border border-destructive/20">
+                                <div data-testid="login-error" className="login-msg-enter flex items-start gap-2 text-sm text-destructive bg-destructive/10 p-3 rounded-md border border-destructive/20">
                                     <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
                                     <div>
                                         <span>{error}</span>
@@ -296,7 +298,7 @@ export default function LoginPage() {
                             )}
 
                             {/* Submit button */}
-                            <Button type="submit" className="w-full" disabled={loading}>
+                            <Button type="submit" className="w-full" disabled={loading} data-testid="login-submit">
                                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 {isSignUp ? 'Zarejestruj się' : 'Zaloguj się'}
                             </Button>
