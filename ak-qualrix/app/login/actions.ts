@@ -64,12 +64,14 @@ function friendlySignupError(raw: string, err?: { code?: string }): string {
     if (msg.includes('password') && msg.includes('weak')) {
         return 'Hasło jest za słabe. Użyj min. 10 znaków, wielkiej litery i cyfry.'
     }
-    if (msg.includes('rate_limit') || msg.includes('rate limit') || msg.includes('too many requests') || code.includes('rate_limit')) {
-        return 'Za dużo prób rejestracji. Poczekaj chwilę i spróbuj ponownie (limit: kilka minut).'
+    if (msg.includes('rate_limit') || msg.includes('rate limit') || msg.includes('too many requests') || code.includes('rate_limit') || code.includes('over_email_send_rate_limit') || msg.includes('email rate limit')) {
+        return 'Przekroczono limit wysyłania emaili. Poczekaj kilka minut i spróbuj ponownie, lub skontaktuj się z administratorem.'
     }
     if (msg.includes('signup is disabled') || msg.includes('signups not allowed')) {
         return 'Rejestracja jest tymczasowo wyłączona. Skontaktuj się z administratorem.'
     }
+    // Fallback — include sanitized original for debugging
+    console.error('[SIGNUP_FALLBACK_ERROR]', raw, code)
     return `Wystąpił problem z rejestracją. Spróbuj ponownie za chwilę.`
 }
 
@@ -313,5 +315,5 @@ export async function signup(formData: FormData) {
         return { error: 'Konto z tym adresem email już istnieje. Spróbuj się zalogować.' }
     }
 
-    return { success: 'Rejestracja zakończona sukcesem. Potwierdź adres mailowy na swojej skrzynce pocztowej przed zalogowaniem.' }
+    return { success: 'Rejestracja zakończona sukcesem! Możesz się teraz zalogować.' }
 }
