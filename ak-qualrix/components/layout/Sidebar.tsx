@@ -98,15 +98,18 @@ export function Sidebar({ role, user, permissions }: SidebarProps) {
             <div className="flex h-20 items-center px-6 border-b border-border gap-3">
                 <Logo size="md" />
             </div>
-            <nav className="flex flex-col gap-1 p-4">
+            <nav className="flex flex-col gap-1 p-4" data-testid="sidebar-nav">
                 {links.map((link) => {
                     const Icon = link.icon
                     const isActive = pathname === link.href || pathname.startsWith(`${link.href}/`)
+                    // Generate testid from href: /home → nav-home, /admin/settings → nav-admin-settings
+                    const testId = `nav-${link.href.replace(/^\\//, '').replace(/\\//g, '-')}`
 
                     return (
                         <Link
                             key={link.href}
                             href={link.href}
+                            data-testid={testId}
                             className={cn(
                                 "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all hover:text-primary",
                                 isActive
