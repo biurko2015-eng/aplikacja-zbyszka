@@ -64,8 +64,11 @@ function friendlySignupError(raw: string, err?: { code?: string }): string {
     if (msg.includes('password') && msg.includes('weak')) {
         return 'Hasło jest za słabe. Użyj min. 10 znaków, wielkiej litery i cyfry.'
     }
-    if (msg.includes('rate_limit') || msg.includes('too many requests')) {
-        return 'Za dużo prób rejestracji. Poczekaj chwilę i spróbuj ponownie.'
+    if (msg.includes('rate_limit') || msg.includes('rate limit') || msg.includes('too many requests') || code.includes('rate_limit')) {
+        return 'Za dużo prób rejestracji. Poczekaj chwilę i spróbuj ponownie (limit: kilka minut).'
+    }
+    if (msg.includes('signup is disabled') || msg.includes('signups not allowed')) {
+        return 'Rejestracja jest tymczasowo wyłączona. Skontaktuj się z administratorem.'
     }
     return `Wystąpił problem z rejestracją. Spróbuj ponownie za chwilę.`
 }
@@ -283,16 +286,18 @@ export async function signup(formData: FormData) {
 
     const supabase = createClient()
 
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://compass-14fg.onrender.com'
+
     const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
             data: {
                 full_name: fullName.trim(),
-                gdpr_consent: true, // Should be saved to profile via trigger/metadata
-                role: 'consultant' // Default role
+                gdpr_consent: true,
+                role: 'consultant',
             },
-            // emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`
+            emailRedirectTo: `${siteUrl}/auth/callback`,
         },
     })
 
