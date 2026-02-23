@@ -163,26 +163,17 @@ export async function getOrCreateDirectConversation(targetUserId: string): Promi
         }
     }
 
-    // Create new
-    const { data: newConv, error: createError } = await supabase
-        .from('conversations')
-        .insert({ type: 'direct' })
-        .select()
-        .single()
+    // Create new via RPC (SECURITY DEFINER bypasses the INSERT...RETURNING + SELECT policy conflict)
+    const { data: newConvId, error: createError } = await supabase
+        .rpc('create_direct_conversation', {
+            p_user_id: user.id,
+            p_target_user_id: targetUserId,
+        })
 
     if (createError) return { id: null, error: createError.message }
 
-    const { error: partError } = await supabase
-        .from('conversation_participants')
-        .insert([
-            { conversation_id: newConv.id, user_id: user.id, role: 'member' },
-            { conversation_id: newConv.id, user_id: targetUserId, role: 'member' }
-        ])
-
-    if (partError) return { id: null, error: partError.message }
-
     revalidatePath('/messages')
-    return { id: newConv.id, error: null }
+    return { id: newConvId, error: null }
 }
 
 /**
@@ -351,34 +342,17 @@ export async function createBroadcastGroup(name: string, participantIds: string[
         return { id: null, error: 'Only admins can create broadcast groups' }
     }
 
-    const { data: conv, error: convError } = await supabase
-        .from('conversations')
-        .insert({
-            type: 'broadcast',
-            name,
-            owner_id: user.id
+    const { data: convId, error: convError } = await supabase
+        .rpc('create_broadcast_conversation', {
+            p_owner_id: user.id,
+            p_name: name,
+            p_participant_ids: participantIds,
         })
-        .select()
-        .single()
 
     if (convError) return { id: null, error: convError.message }
 
-    const participants = [
-        { conversation_id: conv.id, user_id: user.id, role: 'owner' }
-    ]
-
-    participantIds.forEach(pid => {
-        participants.push({ conversation_id: conv.id, user_id: pid, role: 'member' })
-    })
-
-    const { error: partError } = await supabase
-        .from('conversation_participants')
-        .insert(participants)
-
-    if (partError) return { id: null, error: partError.message }
-
     revalidatePath('/messages')
-    return { id: conv.id, error: null }
+    return { id: convId, error: null }
 }
 
 /**
@@ -409,45 +383,24 @@ export async function sendBroadcastToAll(
         return { error: 'Nie udało się pobrać listy użytkowników', recipientCount: 0 }
     }
 
-    // Create broadcast conversation
-    const { data: conv, error: convError } = await supabase
-        .from('conversations')
-        .insert({
-            type: 'broadcast',
-            name: title,
-            owner_id: user.id,
-            last_message_at: new Date().toISOString()
+    // Create broadcast conversation via RPC
+    const participantIds = allUsers.map(u => u.id)
+    const { data: convId, error: convError } = await supabase
+        .rpc('create_broadcast_conversation', {
+            p_owner_id: user.id,
+            p_name: title,
+            p_participant_ids: participantIds,
         })
-        .select()
-        .single()
 
-    if (convError || !conv) {
+    if (convError || !convId) {
         return { error: 'Nie udało się utworzyć ogłoszenia: ' + (convError?.message || ''), recipientCount: 0 }
-    }
-
-    // Add all users as participants (owner + members)
-    const participants = [
-        { conversation_id: conv.id, user_id: user.id, role: 'owner' },
-        ...allUsers.map(u => ({ conversation_id: conv.id, user_id: u.id, role: 'member' }))
-    ]
-
-    // Supabase has a limit on batch inserts, chunk if needed
-    const CHUNK_SIZE = 500
-    for (let i = 0; i < participants.length; i += CHUNK_SIZE) {
-        const chunk = participants.slice(i, i + CHUNK_SIZE)
-        const { error: partError } = await supabase
-            .from('conversation_participants')
-            .insert(chunk)
-        if (partError) {
-            console.error('Error adding participants chunk:', partError)
-        }
     }
 
     // Send the message
     const { error: msgError } = await supabase
         .from('messages')
         .insert({
-            conversation_id: conv.id,
+            conversation_id: convId,
             sender_id: user.id,
             content,
             type: 'text'

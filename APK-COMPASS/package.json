@@ -1,0 +1,7 @@
+{
+  "name": "apk-compass-root",
+  "private": true,
+  "scripts": {
+    "sync": "bash scripts/git-sync-push.sh"
+  }
+}
