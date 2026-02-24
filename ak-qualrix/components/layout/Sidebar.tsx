@@ -103,7 +103,7 @@ export function Sidebar({ role, user, permissions }: SidebarProps) {
                     const Icon = link.icon
                     const isActive = pathname === link.href || pathname.startsWith(`${link.href}/`)
                     // Generate testid from href: /home → nav-home, /admin/settings → nav-admin-settings
-                    const testId = `nav-${link.href.replace(/^\\//, '').replace(/\\//g, '-')}`
+                    const testId = `nav-${link.href.replace(/^\//, '').replace(/\//g, '-')}`
 
                     return (
                         <Link
