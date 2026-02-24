@@ -8,18 +8,16 @@ export async function loginViaUI(page: Page, email?: string, password?: string) 
     const userEmail = email || process.env.TEST_USER_EMAIL || 'zbigniew.twardowski@b2bnetwork.pl'
     const userPass = password || process.env.TEST_USER_PASSWORD || 'ComPass2026!Admin'
 
-    await page.goto('/login')
-    await page.waitForLoadState('networkidle')
+    await page.goto('/login', { waitUntil: 'networkidle' })
 
-    // Wypełnij formularz logowania
-    await page.locator('[data-testid="login-email"]').fill(userEmail)
-    await page.locator('[data-testid="login-password"]').fill(userPass)
-    await page.locator('[data-testid="login-submit"]').click()
+    // Wypełnij formularz logowania (selektory oparte na ID — stabilne)
+    await page.locator('#email').fill(userEmail)
+    await page.locator('#password').fill(userPass)
+    await page.locator('button[type="submit"]').click()
 
     // Czekaj na MFA dialog lub redirect
-    // Admin/centrala wymaga MFA — sprawdź czy pojawi się MFA input
     try {
-        const mfaInput = page.locator('[data-testid="mfa-code"]')
+        const mfaInput = page.locator('input[name="mfa-code"], input[placeholder*="kod"], input[placeholder*="code"]')
         await mfaInput.waitFor({ state: 'visible', timeout: 5000 })
 
         // MFA required — wpisz kod (pin: 000000 for test/bypass)
