@@ -29,7 +29,7 @@ test.describe('Authentication Flow', () => {
         await page.waitForURL(/\/messages/, { timeout: 15000 })
         await expect(page).toHaveURL(/\/messages/)
 
-        // Nagłówek "Wiadomości" widoczny
-        await expect(page.getByText('Wiadomości')).toBeVisible()
+        // Nagłówek "Wiadomości" widoczny — użyj getByRole by uniknąć strict mode
+        await expect(page.getByRole('heading', { name: 'Wiadomości' })).toBeVisible()
     })
 })
