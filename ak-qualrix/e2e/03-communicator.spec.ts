@@ -9,13 +9,14 @@ test.describe('Komunikator (Wiadomości)', () => {
     })
 
     test('1. Strona wiadomości ładuje się poprawnie', async ({ page }) => {
-        await expect(page.getByText('Wiadomości')).toBeVisible()
-        // Przycisk "Nowa" widoczny
-        await expect(page.getByText('Nowa')).toBeVisible()
+        // Nagłówek "Wiadomości" (h2) — użyj getByRole by uniknąć strict mode
+        await expect(page.getByRole('heading', { name: 'Wiadomości' })).toBeVisible()
+        // Przycisk "Nowa" widoczny — użyj getByRole('button') by uniknąć strict mode
+        await expect(page.getByRole('button', { name: 'Nowa' })).toBeVisible()
     })
 
     test('2. Kliknięcie "+Nowa" pokazuje listę odbiorców', async ({ page }) => {
-        await page.getByText('Nowa').click()
+        await page.getByRole('button', { name: 'Nowa' }).click()
         await page.waitForTimeout(2000)
 
         // Lista odbiorców powinna się pojawić
@@ -27,7 +28,7 @@ test.describe('Komunikator (Wiadomości)', () => {
     })
 
     test('3. Tworzenie konwersacji nie zwraca błędu RLS', async ({ page }) => {
-        await page.getByText('Nowa').click()
+        await page.getByRole('button', { name: 'Nowa' }).click()
         await page.waitForTimeout(2000)
 
         // Kliknij na pierwszego dostępnego użytkownika
