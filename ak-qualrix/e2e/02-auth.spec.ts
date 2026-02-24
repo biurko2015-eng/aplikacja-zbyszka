@@ -10,21 +10,22 @@ test.describe('Authentication Flow', () => {
 
         // Dashboard powinien zawierać nawigację (sidebar z linkami)
         await expect(page.locator('nav').first()).toBeVisible()
-        await expect(page.locator('a[href="/home"]')).toBeVisible()
+        // Strona ma wiele linków /home — sprawdzamy czy przynajmniej jeden istnieje
+        await expect(page.locator('a[href="/home"]').first()).toBeVisible()
     })
 
     test('2. Po loginie widoczne kluczowe elementy nawigacji', async ({ page }) => {
         await loginViaUI(page)
 
-        // Sprawdź podstawowe linki w sidebar
-        await expect(page.locator('a[href="/home"]')).toBeVisible()
-        await expect(page.locator('a[href="/messages"]')).toBeVisible()
+        // Sprawdź podstawowe linki w sidebar (first() bo strona ma wiele linków)
+        await expect(page.locator('a[href="/home"]').first()).toBeVisible()
+        await expect(page.locator('a[href="/messages"]').first()).toBeVisible()
     })
 
     test('3. Przejście na /messages po loginie działa', async ({ page }) => {
         await loginViaUI(page)
 
-        await page.locator('a[href="/messages"]').click()
+        await page.locator('a[href="/messages"]').first().click()
         await page.waitForURL(/\/messages/, { timeout: 15000 })
         await expect(page).toHaveURL(/\/messages/)
 
