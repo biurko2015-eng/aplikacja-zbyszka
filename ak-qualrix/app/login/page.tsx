@@ -243,7 +243,18 @@ export default function LoginPage() {
 
                             {/* Password field with show/hide toggle */}
                             <div className="space-y-2">
-                                <Label htmlFor="password">Hasło</Label>
+                                <div className="flex items-center justify-between">
+                                    <Label htmlFor="password">Hasło</Label>
+                                    {!isSignUp && (
+                                        <Link
+                                            href="/forgot-password"
+                                            className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                                            tabIndex={-1}
+                                        >
+                                            Nie pamiętasz hasła?
+                                        </Link>
+                                    )}
+                                </div>
                                 <div className="relative">
                                     <Input
                                         id="password"
@@ -277,7 +288,7 @@ export default function LoginPage() {
                                     <div>
                                         <span>{error}</span>
                                         {/* Show forgot password link after 2+ failed attempts */}
-                                        {failCount >= 2 && !isSignUp && (
+                                        {!isSignUp && (
                                             <Link
                                                 href="/forgot-password"
                                                 className="block mt-1.5 text-xs text-primary hover:underline"

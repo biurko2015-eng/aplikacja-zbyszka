@@ -27,7 +27,7 @@ export default function UpdatePasswordPage() {
             toast.error(error.message)
         } else {
             toastSuccess('Hasło zostało zmienione')
-            router.push('/dashboard')
+            router.push('/home')
         }
     }
 
