@@ -1,5 +1,0 @@
-# Render.com — konfiguracja builda (opcjonalna)
-# Root Directory w ustawieniach serwisu: ak-qualrix (jeśli repo to cały workspace)
-# Branch: main
-# Build Command: npm install && npm run build
-# Start Command: npm start

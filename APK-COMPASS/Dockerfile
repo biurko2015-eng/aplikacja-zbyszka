@@ -1,15 +1,15 @@
 # Build stage
 FROM node:20-alpine AS builder
 
-WORKDIR /app/ak-qualrix
+WORKDIR /app
 
-COPY ak-qualrix/package.json ak-qualrix/package-lock.json ./
+COPY package.json package-lock.json* ./
 RUN npm ci
 
-COPY ak-qualrix/ ./
+COPY . .
 RUN npm run build
 
-# Production stage
+# Production stage (Next.js standalone)
 FROM node:20-alpine AS runner
 
 WORKDIR /app
@@ -20,9 +20,9 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-COPY --from=builder --chown=nextjs:nodejs /app/ak-qualrix/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/ak-qualrix/.next/static ./.next/static
-COPY --from=builder /app/ak-qualrix/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder /app/public ./public
 
 USER nextjs
 

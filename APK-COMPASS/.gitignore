@@ -1,36 +1,37 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
 # dependencies
-node_modules/
-.pnp
+/node_modules
+/.pnp
 .pnp.js
 .yarn/install-state.gz
 
 # testing
 /coverage
-/playwright-report/
-/test-results/
 
 # next.js
-.next/
-out/
+/.next/
+/out/
 
 # production
-build/
+/build
 
 # misc
 .DS_Store
 *.pem
-*.tmp
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
 # local env files
 .env*.local
-ak-qualrix/.env*.local
-# GitHub token for push script (never commit)
-.env.github
+
+# vercel
+.vercel
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
-# logs
-*.log
-ak-qualrix/dev_server.log
+.env.test

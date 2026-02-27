@@ -1,2 +1,0 @@
-ALTER TABLE public.profiles
-ADD COLUMN IF NOT EXISTS gdpr_consent BOOLEAN DEFAULT FALSE;

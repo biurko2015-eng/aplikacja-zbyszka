@@ -2,8 +2,14 @@ const { Client } = require('pg');
 const fs = require('fs');
 const path = require('path');
 
-const connectionString = process.env.DATABASE_URL ||
-    'postgresql://postgres:xBf88BXZtf6QXJPa@db.txzflesacqvlyhxwfjxk.supabase.co:5432/postgres?sslmode=no-verify';
+try { require('dotenv').config({ path: path.resolve(__dirname, '..', '.env.local') }); } catch {}
+
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+    console.error('ERROR: DATABASE_URL is not set.');
+    console.error('Add it to .env.local or pass as environment variable.');
+    process.exit(1);
+}
 
 const migrationFile = process.argv[2];
 
