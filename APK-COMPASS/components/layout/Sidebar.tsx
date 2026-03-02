@@ -31,6 +31,7 @@ interface SidebarProps {
         avatar_url?: string | null
     } | null
     permissions?: Record<PermissionFeature, PermissionValue>
+    forMobile?: boolean
 }
 
 // Map each sidebar link to its permission feature key
@@ -50,7 +51,7 @@ const LINK_PERMISSION_MAP: Record<string, PermissionFeature> = {
     '/admin/settings': 'settings',
 }
 
-export function Sidebar({ role, user, permissions }: SidebarProps) {
+export function Sidebar({ role, user, permissions, forMobile = false }: SidebarProps) {
     const pathname = usePathname()
     const { t } = useTranslation()
     const { brandName } = useTheme()
@@ -94,7 +95,10 @@ export function Sidebar({ role, user, permissions }: SidebarProps) {
     })
 
     return (
-        <div className="hidden border-r bg-card md:block md:w-64 lg:w-72 h-screen sticky top-0 left-0 overflow-y-auto transition-colors duration-300">
+        <div className={cn(
+            "border-r bg-card h-screen sticky top-0 left-0 overflow-y-auto transition-colors duration-300",
+            forMobile ? 'flex flex-col w-full' : 'hidden md:block md:w-64 lg:w-72',
+        )}>
             <div className="flex h-20 items-center px-6 border-b border-border gap-3">
                 <Logo size="md" />
             </div>

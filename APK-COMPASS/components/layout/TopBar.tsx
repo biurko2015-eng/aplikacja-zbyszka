@@ -16,6 +16,7 @@ import { useRouter } from 'next/navigation'
 import { useTranslation } from '@/lib/i18n/context'
 import { NotificationBell } from '@/components/notifications/NotificationBell'
 import { Logo } from '@/components/common/Logo'
+import { Menu } from 'lucide-react'
 
 interface TopBarProps {
     user?: {
@@ -23,20 +24,17 @@ interface TopBarProps {
         email?: string | null
         avatar_url?: string | null
     } | null
+    onMenuToggle?: () => void
 }
 
-export function TopBar({ user }: TopBarProps) {
+export function TopBar({ user, onMenuToggle }: TopBarProps) {
     const router = useRouter()
     const supabase = createClient()
-    const { t, language, setLanguage } = useTranslation()
+    const { t } = useTranslation()
 
     const handleSignOut = async () => {
         await supabase.auth.signOut()
         router.push('/login')
-    }
-
-    const toggleLanguage = () => {
-        setLanguage(language === 'pl' ? 'en' : 'pl')
     }
 
     const initials = user?.full_name
@@ -50,24 +48,19 @@ export function TopBar({ user }: TopBarProps) {
 
     return (
         <header className="sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b bg-card px-4 md:px-6">
-            <div className="md:hidden">
+            <div className="flex items-center gap-3 md:hidden">
+                {onMenuToggle && (
+                    <Button variant="ghost" size="icon" className="md:hidden" onClick={onMenuToggle}>
+                        <Menu className="w-5 h-5" />
+                    </Button>
+                )}
                 <Logo size="sm" showText={true} />
             </div>
 
+            <div className="hidden md:block" />
+
             <div className="flex items-center gap-4">
                 <NotificationBell />
-
-                {/* Language Switcher Removed */}
-                {/* 
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    className="font-semibold text-muted-foreground w-12"
-                    onClick={toggleLanguage}
-                >
-                    {language.toUpperCase()}
-                </Button> 
-                */}
 
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
