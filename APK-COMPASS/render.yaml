@@ -1,0 +1,4 @@
+# Konfiguracja Render jest w /render.yaml (root repo)
+# Root Directory: APK-COMPASS (ustawione via Blueprint)
+# Branch: main
+# Build: Docker (Dockerfile w tym katalogu)

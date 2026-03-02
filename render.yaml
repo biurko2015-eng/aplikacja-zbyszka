@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: compass-14fg
+    runtime: docker
+    rootDir: APK-COMPASS
+    repo: https://github.com/biurko2015-eng/aplikacja-zbyszka.git
+    branch: main
+    dockerfilePath: ./Dockerfile
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        sync: false
