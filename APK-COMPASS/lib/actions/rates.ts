@@ -1,6 +1,11 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import OpenAI from 'openai'
+
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY || 'mock-key',
+})
 
 interface MarketRate {
     id: string
@@ -62,6 +67,7 @@ interface VerifyRateResult {
     verdict: 'below_market' | 'within_market' | 'above_market'
     expected_rate: number
     rate_type: string
+    summary: string
 }
 
 async function requireCentralaOrAdmin() {
@@ -262,7 +268,18 @@ export async function verifyRate(input: VerifyRateInput): Promise<VerifyRateResu
         }
     }
 
-    // 4. Save verification to history
+    // 4. Generate AI summary
+    const summary = await generateRateSummary({
+        position_title: input.position_title,
+        profile_description: input.profile_description,
+        expected_rate: input.expected_rate,
+        rate_type: input.rate_type,
+        market: { min: marketMin, median: marketMedian, max: marketMax, sources: marketSources, count: normalizedMarket.length },
+        compass: { min: compassMin, avg: compassAvg, max: compassMax, sample_size: compassRates.length },
+        verdict,
+    })
+
+    // 5. Save verification to history
     await supabase.from('rate_verifications').insert({
         verified_by: user.id,
         position_title: input.position_title,
@@ -279,6 +296,7 @@ export async function verifyRate(input: VerifyRateInput): Promise<VerifyRateResu
         compass_rate_avg: compassAvg,
         compass_sample_size: compassRates.length,
         verdict,
+        notes: summary,
     })
 
     return {
@@ -298,6 +316,70 @@ export async function verifyRate(input: VerifyRateInput): Promise<VerifyRateResu
         verdict,
         expected_rate: input.expected_rate,
         rate_type: input.rate_type,
+        summary,
+    }
+}
+
+async function generateRateSummary(input: {
+    position_title: string
+    profile_description?: string
+    expected_rate: number
+    rate_type: 'hourly' | 'monthly'
+    market: { min: number | null; median: number | null; max: number | null; sources: string[]; count: number }
+    compass: { min: number | null; avg: number | null; max: number | null; sample_size: number }
+    verdict: string
+}): Promise<string> {
+    if (!process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY === 'mock-key') {
+        return 'Podsumowanie AI niedostępne — brak klucza OpenAI.'
+    }
+
+    const unit = input.rate_type === 'hourly' ? 'PLN/h' : 'PLN/mies.'
+    const verdictPl = input.verdict === 'below_market' ? 'poniżej rynku'
+        : input.verdict === 'above_market' ? 'powyżej rynku' : 'w normie rynkowej'
+
+    const prompt = `Jesteś ekspertem ds. wynagrodzeń IT w Polsce, pracującym dla firmy outsourcingowej B2B.net.
+
+Na podstawie poniższych danych sporządź zwięzłe podsumowanie i wnioski (4-6 zdań) po polsku.
+
+DANE WEJŚCIOWE:
+- Stanowisko: ${input.position_title}
+- Opis profilu: ${input.profile_description || 'brak szczegółów'}
+- Oczekiwana stawka: ${input.expected_rate} ${unit}
+
+STAWKI RYNKOWE (${input.market.count} dopasowań, źródła: ${input.market.sources.join(', ') || 'brak'}):
+- Minimum: ${input.market.min ?? 'brak danych'} ${unit}
+- Mediana: ${input.market.median ?? 'brak danych'} ${unit}
+- Maksimum: ${input.market.max ?? 'brak danych'} ${unit}
+
+STAWKI WEWNĘTRZNE COMPASS (${input.compass.sample_size} aktywnych kontraktów):
+- Minimum: ${input.compass.min ?? 'brak danych'} ${unit}
+- Średnia: ${input.compass.avg ?? 'brak danych'} ${unit}
+- Maksimum: ${input.compass.max ?? 'brak danych'} ${unit}
+
+WERDYKT SYSTEMU: ${verdictPl}
+
+INSTRUKCJE:
+1. Oceń stawkę w kontekście danych rynkowych i wewnętrznych
+2. Jeśli są dane Compass — porównaj z wewnętrznymi benchmarkami
+3. Podaj konkretną rekomendację: AKCEPTACJA / NEGOCJACJA / ODRZUCENIE
+4. Wskaż ewentualne ryzyka lub szanse
+5. Bądź konkretny — podawaj liczby i procenty odchyleń
+6. Pisz zwięźle, profesjonalnym językiem biznesowym`
+
+    try {
+        const response = await openai.chat.completions.create({
+            model: 'gpt-4o-mini',
+            messages: [
+                { role: 'system', content: 'Jesteś ekspertem ds. stawek IT w Polsce. Odpowiadaj krótko, konkretnie, po polsku.' },
+                { role: 'user', content: prompt },
+            ],
+            max_tokens: 500,
+            temperature: 0.3,
+        })
+        return response.choices[0]?.message?.content || 'Nie udało się wygenerować podsumowania.'
+    } catch (err) {
+        console.error('[generateRateSummary]', err)
+        return 'Błąd generowania podsumowania AI.'
     }
 }
 

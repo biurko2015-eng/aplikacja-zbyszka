@@ -19,6 +19,7 @@ import {
     Database,
     ArrowRight,
     Filter,
+    Sparkles,
 } from 'lucide-react'
 import { verifyRate, getMarketRates } from '@/lib/actions/rates'
 
@@ -62,6 +63,7 @@ interface VerifyResult {
     verdict: 'below_market' | 'within_market' | 'above_market'
     expected_rate: number
     rate_type: string
+    summary: string
 }
 
 interface RatesPageClientProps {
@@ -328,6 +330,19 @@ export function RatesPageClient({ initialMarketRates, categories, sources, initi
                                         compassAvg={result.compass.avg}
                                     />
                                 )}
+
+                                {/* AI Summary */}
+                                {result.summary && (
+                                    <div className="space-y-2">
+                                        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                                            <Sparkles className="h-4 w-4 text-amber-400" />
+                                            Podsumowanie i wnioski AI
+                                        </h3>
+                                        <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-4">
+                                            <p className="text-sm leading-relaxed whitespace-pre-line">{result.summary}</p>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
@@ -472,6 +487,15 @@ export function RatesPageClient({ initialMarketRates, categories, sources, initi
                                                     <span>Compass: śr. {item.compass_rate_avg} ({item.compass_sample_size} kontr.)</span>
                                                 )}
                                             </div>
+                                            {item.notes && (
+                                                <div className="mt-3 rounded-md border border-amber-500/20 bg-amber-500/5 p-3">
+                                                    <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 mb-1">
+                                                        <Sparkles className="h-3 w-3 text-amber-400" />
+                                                        Podsumowanie AI
+                                                    </p>
+                                                    <p className="text-xs leading-relaxed whitespace-pre-line">{item.notes}</p>
+                                                </div>
+                                            )}
                                         </div>
                                         <span className="text-xs text-muted-foreground shrink-0">
                                             {new Date(item.created_at).toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
