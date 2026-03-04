@@ -15,7 +15,7 @@ const VALID_ROLES: PermissionRole[] = ['recruiter', 'delivery_lead', 'finance', 
 const VALID_VALUES: PermissionValue[] = ['true', 'false', 'portfolio', 'full', 'readonly']
 const VALID_FEATURES: PermissionFeature[] = [
     'dashboard', 'projects', 'candidates', 'service_hub', 'messages', 'documents',
-    'loyalty', 'development', 'import', 'referrals', 'ai_assistant', 'settings',
+    'loyalty', 'development', 'import', 'referrals', 'ai_assistant', 'settings', 'rates',
 ]
 function isValidRole(r: unknown): r is PermissionRole {
     return typeof r === 'string' && VALID_ROLES.includes(r as PermissionRole)

@@ -16,6 +16,7 @@ import {
     Trophy,
     Rocket,
     MessageCircle,
+    TrendingUp,
 } from 'lucide-react'
 import { Logo } from '@/components/common/Logo'
 import { useTheme } from '@/lib/contexts/ThemeContext'
@@ -49,6 +50,7 @@ const LINK_PERMISSION_MAP: Record<string, PermissionFeature> = {
     '/admin/referrals': 'referrals',
     '/admin/import': 'import',
     '/admin/settings': 'settings',
+    '/admin/rates': 'rates',
 }
 
 export function Sidebar({ role, user, permissions, forMobile = false }: SidebarProps) {
@@ -75,6 +77,7 @@ export function Sidebar({ role, user, permissions, forMobile = false }: SidebarP
         { name: t('projects'), href: '/admin/projects', icon: Briefcase },
         { name: t('referrals'), href: '/admin/referrals', icon: Users },
         { name: 'Import', href: '/admin/import', icon: FileText },
+        { name: 'Stawki', href: '/admin/rates', icon: TrendingUp },
         { name: 'Program lojalnościowy', href: '/loyalty', icon: Trophy },
         { name: 'Strefa Rozwoju', href: '/development', icon: Rocket },
         { name: t('settings'), href: '/admin/settings', icon: Settings },

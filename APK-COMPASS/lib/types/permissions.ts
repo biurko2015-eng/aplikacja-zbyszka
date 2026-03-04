@@ -15,6 +15,7 @@ export type PermissionFeature =
     | 'referrals'
     | 'ai_assistant'
     | 'settings'
+    | 'rates'
 
 export type PermissionValue = 'true' | 'false' | 'portfolio' | 'full' | 'readonly'
 
@@ -32,23 +33,27 @@ export const DEFAULT_PERMISSIONS: PermissionsMap = {
         service_hub: 'true', messages: 'true', documents: 'true',
         loyalty: 'true', development: 'true', import: 'false',
         referrals: 'true', ai_assistant: 'portfolio', settings: 'false',
+        rates: 'true',
     },
     delivery_lead: {
         dashboard: 'true', projects: 'portfolio', candidates: 'portfolio',
         service_hub: 'true', messages: 'true', documents: 'true',
         loyalty: 'true', development: 'true', import: 'false',
         referrals: 'true', ai_assistant: 'portfolio', settings: 'false',
+        rates: 'true',
     },
     finance: {
         dashboard: 'true', projects: 'full', candidates: 'readonly',
         service_hub: 'true', messages: 'true', documents: 'true',
         loyalty: 'true', development: 'true', import: 'false',
         referrals: 'true', ai_assistant: 'portfolio', settings: 'false',
+        rates: 'true',
     },
     consultant: {
         dashboard: 'true', projects: 'full', candidates: 'false',
         service_hub: 'true', messages: 'true', documents: 'true',
         loyalty: 'true', development: 'true', import: 'false',
         referrals: 'true', ai_assistant: 'full', settings: 'false',
+        rates: 'false',
     },
 }

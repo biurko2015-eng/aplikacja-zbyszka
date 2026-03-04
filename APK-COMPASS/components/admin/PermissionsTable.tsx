@@ -31,6 +31,7 @@ const FEATURES: { key: PermissionFeature; label: string; allowedValues: Permissi
     { key: 'referrals', label: 'Polecenia', allowedValues: ['true', 'false'] },
     { key: 'ai_assistant', label: 'Asystent AI', allowedValues: ['false', 'portfolio', 'full'] },
     { key: 'settings', label: 'Ustawienia Systemu', allowedValues: ['true', 'false'] },
+    { key: 'rates', label: 'Stawki', allowedValues: ['true', 'false'] },
 ]
 
 const ROLES: { key: PermissionRole; label: string; color: string }[] = [
