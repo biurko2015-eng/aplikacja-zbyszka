@@ -274,6 +274,16 @@ export async function verifyRate(input: VerifyRateInput): Promise<VerifyRateResu
         profile_description: input.profile_description,
         expected_rate: input.expected_rate,
         rate_type: input.rate_type,
+        matchedRates: matchedRates.map(r => ({
+            position_title: r.position_title,
+            category: r.category,
+            seniority: r.seniority,
+            rate_min: Number(r.rate_min),
+            rate_median: r.rate_median ? Number(r.rate_median) : null,
+            rate_max: Number(r.rate_max),
+            rate_type: r.rate_type,
+            source: r.source,
+        })),
         market: { min: marketMin, median: marketMedian, max: marketMax, sources: marketSources, count: normalizedMarket.length },
         compass: { min: compassMin, avg: compassAvg, max: compassMax, sample_size: compassRates.length },
         verdict,
@@ -320,11 +330,65 @@ export async function verifyRate(input: VerifyRateInput): Promise<VerifyRateResu
     }
 }
 
+interface MatchedRateDetail {
+    position_title: string
+    category: string | null
+    seniority: string | null
+    rate_min: number
+    rate_median: number | null
+    rate_max: number
+    rate_type: string
+    source: string | null
+}
+
+const RATE_TYPE_PL: Record<string, string> = {
+    'hourly': 'godzinowa',
+    'monthly': 'miesięczna',
+    'monthly_gross_uop': 'mies. brutto UoP',
+    'monthly_b2b_netto': 'mies. netto B2B',
+    'hourly_b2b_netto': 'godz. netto B2B',
+}
+
+const SENIORITY_PL: Record<string, string> = {
+    'junior': 'Junior',
+    'mid': 'Mid/Regular',
+    'senior': 'Senior',
+    'specialist': 'Specjalista',
+    'manager': 'Manager',
+    'director': 'Dyrektor',
+    'lead': 'Lead/Principal',
+}
+
+function formatMatchedRatesTable(rates: MatchedRateDetail[]): string {
+    if (rates.length === 0) return 'Brak dopasowań w raportach płacowych.'
+
+    const grouped = new Map<string, MatchedRateDetail[]>()
+    for (const r of rates) {
+        const src = r.source || 'Nieznane źródło'
+        if (!grouped.has(src)) grouped.set(src, [])
+        grouped.get(src)!.push(r)
+    }
+
+    const lines: string[] = []
+    for (const [source, entries] of grouped) {
+        lines.push(`\n📊 ${source}:`)
+        for (const e of entries) {
+            const seniority = e.seniority ? ` [${SENIORITY_PL[e.seniority] || e.seniority}]` : ''
+            const category = e.category ? ` (${e.category})` : ''
+            const rateType = RATE_TYPE_PL[e.rate_type] || e.rate_type
+            const median = e.rate_median ? `, mediana: ${e.rate_median.toLocaleString('pl-PL')}` : ''
+            lines.push(`  • ${e.position_title}${seniority}${category} — ${e.rate_min.toLocaleString('pl-PL')}–${e.rate_max.toLocaleString('pl-PL')} PLN${median} (${rateType})`)
+        }
+    }
+    return lines.join('\n')
+}
+
 async function generateRateSummary(input: {
     position_title: string
     profile_description?: string
     expected_rate: number
     rate_type: 'hourly' | 'monthly'
+    matchedRates: MatchedRateDetail[]
     market: { min: number | null; median: number | null; max: number | null; sources: string[]; count: number }
     compass: { min: number | null; avg: number | null; max: number | null; sample_size: number }
     verdict: string
@@ -337,16 +401,23 @@ async function generateRateSummary(input: {
     const verdictPl = input.verdict === 'below_market' ? 'poniżej rynku'
         : input.verdict === 'above_market' ? 'powyżej rynku' : 'w normie rynkowej'
 
+    const ratesTable = formatMatchedRatesTable(input.matchedRates)
+
     const prompt = `Jesteś ekspertem ds. wynagrodzeń IT w Polsce, pracującym dla firmy outsourcingowej B2B.net.
+Analizujesz stawkę konsultanta na podstawie realnych raportów płacowych.
 
-Na podstawie poniższych danych sporządź zwięzłe podsumowanie i wnioski (4-6 zdań) po polsku.
-
-DANE WEJŚCIOWE:
+══════════════════════════════════════════
+ZAPYTANIE UŻYTKOWNIKA:
 - Stanowisko: ${input.position_title}
 - Opis profilu: ${input.profile_description || 'brak szczegółów'}
 - Oczekiwana stawka: ${input.expected_rate} ${unit}
+══════════════════════════════════════════
 
-STAWKI RYNKOWE (${input.market.count} dopasowań, źródła: ${input.market.sources.join(', ') || 'brak'}):
+DOPASOWANE POZYCJE Z RAPORTÓW PŁACOWYCH (${input.matchedRates.length} dopasowań):
+${ratesTable}
+
+══════════════════════════════════════════
+ZAGREGOWANE STAWKI RYNKOWE (po normalizacji do ${unit}):
 - Minimum: ${input.market.min ?? 'brak danych'} ${unit}
 - Mediana: ${input.market.median ?? 'brak danych'} ${unit}
 - Maksimum: ${input.market.max ?? 'brak danych'} ${unit}
@@ -357,23 +428,33 @@ STAWKI WEWNĘTRZNE COMPASS (${input.compass.sample_size} aktywnych kontraktów):
 - Maksimum: ${input.compass.max ?? 'brak danych'} ${unit}
 
 WERDYKT SYSTEMU: ${verdictPl}
+══════════════════════════════════════════
 
-INSTRUKCJE:
-1. Oceń stawkę w kontekście danych rynkowych i wewnętrznych
-2. Jeśli są dane Compass — porównaj z wewnętrznymi benchmarkami
-3. Podaj konkretną rekomendację: AKCEPTACJA / NEGOCJACJA / ODRZUCENIE
-4. Wskaż ewentualne ryzyka lub szanse
-5. Bądź konkretny — podawaj liczby i procenty odchyleń
-6. Pisz zwięźle, profesjonalnym językiem biznesowym`
+INSTRUKCJE — sporządź analizę w następującej strukturze:
+
+1. DOPASOWANIE STANOWISKA
+   Wymień wszystkie dopasowane nazwy stanowisk z raportów płacowych. Wskaż, które najlepiej odpowiadają zapytaniu użytkownika. Jeśli nazwa w raporcie jest inna niż podana przez użytkownika — wyjaśnij różnicę (np. "W raporcie Hays ta rola figuruje jako «Java Developer», a w Sedlak & Sedlak jako «Programista Java»").
+
+2. ANALIZA STAWEK Z RAPORTÓW
+   Dla każdego raportu oddzielnie: podaj widełki, typ stawki (UoP brutto / B2B netto / godzinowa), poziom seniorności. Uwzględnij różnice między raportami. Jeśli typy stawek się różnią (np. UoP vs B2B) — zaznacz to i przelicz orientacyjnie.
+
+3. PORÓWNANIE Z OCZEKIWANĄ STAWKĄ
+   Porównaj oczekiwaną stawkę z każdym raportem osobno. Podaj % odchylenia od mediany. Jeśli są dane Compass — porównaj też z wewnętrznymi benchmarkami.
+
+4. REKOMENDACJA
+   Podaj konkretną rekomendację: ✅ AKCEPTACJA / ⚠️ NEGOCJACJA / ❌ ODRZUCENIE
+   Uzasadnij w 1-2 zdaniach. Wskaż ryzyka lub szanse.
+
+Pisz po polsku, profesjonalnym językiem biznesowym. Bądź konkretny — podawaj liczby i procenty.`
 
     try {
         const response = await openai.chat.completions.create({
             model: 'gpt-4o-mini',
             messages: [
-                { role: 'system', content: 'Jesteś ekspertem ds. stawek IT w Polsce. Odpowiadaj krótko, konkretnie, po polsku.' },
+                { role: 'system', content: 'Jesteś ekspertem ds. stawek IT w Polsce. Tworzysz profesjonalne analizy stawek na podstawie raportów płacowych (Hays, Sedlak & Sedlak, itp.). Odpowiadasz po polsku, konkretnie, z odniesieniami do źródeł.' },
                 { role: 'user', content: prompt },
             ],
-            max_tokens: 500,
+            max_tokens: 1200,
             temperature: 0.3,
         })
         return response.choices[0]?.message?.content || 'Nie udało się wygenerować podsumowania.'
