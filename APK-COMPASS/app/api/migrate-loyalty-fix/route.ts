@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { Pool } from 'pg'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,40 +17,40 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-    const supabase = createClient(supabaseUrl, expectedSecret, {
-        db: { schema: 'public' },
-        auth: { persistSession: false },
-    })
+    const results: { step: string; status: string; detail?: string }[] = []
 
-    const results: { step: string; status: string; error?: string }[] = []
-
-    // Step 1: Replace the trigger function
-    const { error: e1 } = await supabase.rpc('exec_sql', { sql: '' }).catch(() => ({ error: null })) as any
-    // rpc won't work — use raw pg via supabase admin
-    // Instead, we'll use the Supabase SQL query directly via fetch
-
-    const pgRes = await fetch(`${supabaseUrl}/rest/v1/rpc/`, {
-        method: 'POST',
-        headers: {
-            'apikey': expectedSecret,
-            'Authorization': `Bearer ${expectedSecret}`,
-            'Content-Type': 'application/json',
-        },
-    }).catch(() => null)
-
-    // Since we can't run raw SQL via REST, let's create a workaround:
-    // Use the Database URL directly with pg
-    const DATABASE_URL = process.env.DATABASE_URL
-
-    if (!DATABASE_URL) {
-        return NextResponse.json({ error: 'DATABASE_URL not configured' }, { status: 500 })
+    // Build connection string — use DATABASE_URL if available, otherwise construct from SUPABASE_URL
+    let connectionString = process.env.DATABASE_URL
+    if (!connectionString) {
+        // Fallback: construct from Supabase URL pattern
+        // https://txzflesacqvlyhxwfjxk.supabase.co → db.txzflesacqvlyhxwfjxk.supabase.co
+        const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+        const match = supabaseUrl.match(/https:\/\/([^.]+)\.supabase\.co/)
+        if (match) {
+            const ref = match[1]
+            connectionString = `postgresql://postgres.${ref}:${secret}@aws-0-eu-central-1.pooler.supabase.com:6543/postgres`
+        }
     }
 
+    if (!connectionString) {
+        return NextResponse.json({
+            error: 'Cannot determine database connection',
+            env_keys: Object.keys(process.env).filter(k => k.includes('DATABASE') || k.includes('SUPABASE') || k.includes('PG')),
+        }, { status: 500 })
+    }
+
+    let pool: Pool | null = null
+
     try {
-        // Dynamic import of pg (needs to be installed)
-        const { Pool } = await import('pg')
-        const pool = new Pool({ connectionString: DATABASE_URL })
+        pool = new Pool({
+            connectionString,
+            ssl: { rejectUnauthorized: false },
+            connectionTimeoutMillis: 10000,
+        })
+
+        // Test connection
+        await pool.query('SELECT 1')
+        results.push({ step: 'Database connection', status: 'OK' })
 
         // Step 1: Replace trigger function
         try {
@@ -108,7 +108,7 @@ export async function GET(req: NextRequest) {
             `)
             results.push({ step: 'Replace trigger function (Bronze 0, Silver 500, Gold 2000, Platinum 5000)', status: 'OK' })
         } catch (err: any) {
-            results.push({ step: 'Replace trigger function', status: 'ERROR', error: err.message })
+            results.push({ step: 'Replace trigger function', status: 'ERROR', detail: err.message })
         }
 
         // Step 2: Verify trigger exists on loyalty_transactions
@@ -119,21 +119,20 @@ export async function GET(req: NextRequest) {
                 AND trigger_name LIKE '%loyalty%'
             `)
             if (rows.length > 0) {
-                results.push({ step: 'Verify trigger on loyalty_transactions', status: 'OK', error: `Found: ${rows.map((r: any) => r.trigger_name).join(', ')}` })
+                results.push({ step: 'Verify trigger', status: 'OK', detail: `Found: ${rows.map((r: any) => r.trigger_name).join(', ')}` })
             } else {
-                // Create trigger if missing
                 await pool.query(`
                     CREATE TRIGGER update_loyalty_status_trigger
                     AFTER INSERT OR DELETE ON loyalty_transactions
                     FOR EACH ROW EXECUTE FUNCTION update_loyalty_status();
                 `)
-                results.push({ step: 'Create missing trigger on loyalty_transactions', status: 'OK' })
+                results.push({ step: 'Create missing trigger', status: 'OK' })
             }
         } catch (err: any) {
-            results.push({ step: 'Verify/create trigger', status: 'ERROR', error: err.message })
+            results.push({ step: 'Verify/create trigger', status: 'ERROR', detail: err.message })
         }
 
-        // Step 3: Recalculate existing users' tiers based on new thresholds
+        // Step 3: Recalculate existing users' tiers
         try {
             const { rowCount } = await pool.query(`
                 UPDATE profiles p
@@ -145,12 +144,10 @@ export async function GET(req: NextRequest) {
                 END
                 WHERE p.loyalty_points IS NOT NULL AND p.loyalty_points > 0
             `)
-            results.push({ step: `Recalculate tiers for existing users`, status: 'OK', error: `${rowCount} profiles updated` })
+            results.push({ step: 'Recalculate tiers', status: 'OK', detail: `${rowCount} profiles updated` })
         } catch (err: any) {
-            results.push({ step: 'Recalculate tiers', status: 'ERROR', error: err.message })
+            results.push({ step: 'Recalculate tiers', status: 'ERROR', detail: err.message })
         }
-
-        await pool.end()
 
         return NextResponse.json({
             migration: '20260309_fix_loyalty_tier_trigger',
@@ -161,7 +158,10 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({
             error: 'Migration failed',
             message: err.message,
+            stack: err.stack?.split('\n').slice(0, 3),
             results,
         }, { status: 500 })
+    } finally {
+        if (pool) await pool.end().catch(() => {})
     }
 }
