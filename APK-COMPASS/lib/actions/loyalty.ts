@@ -237,3 +237,329 @@ export async function getTierProgress() {
         return { success: false, error: error.message }
     }
 }
+
+// ── Tier config (single source of truth) ──
+export const TIER_CONFIG = [
+    { name: 'bronze', label: 'BRONZE', threshold: 0, next: 'silver', nextThreshold: 1000 },
+    { name: 'silver', label: 'SILVER', threshold: 1000, next: 'gold', nextThreshold: 3000 },
+    { name: 'gold', label: 'GOLD', threshold: 3000, next: 'platinum', nextThreshold: 6000 },
+    { name: 'platinum', label: 'PLATINUM', threshold: 6000, next: null, nextThreshold: 6000 },
+] as const
+
+// ── Breakdown types ──
+
+export interface CategoryBreakdown {
+    category: string
+    totalPoints: number
+    percentage: number
+    items: {
+        sourceType: string
+        label: string
+        description: string | null
+        totalPoints: number
+        count: number
+        lastEarned: string | null
+        rulePoints: number
+    }[]
+}
+
+export interface TimelineMonth {
+    month: string
+    points: number
+    breakdown: Record<string, number>
+}
+
+export interface LoyaltyBreakdownResult {
+    success: boolean
+    error?: string
+    summary?: {
+        totalPoints: number
+        currentTier: string
+        nextTier: string | null
+        pointsToNext: number
+        progressPercent: number
+        memberSince: string | null
+    }
+    byCategory?: CategoryBreakdown[]
+    timeline?: TimelineMonth[]
+    recentTransactions?: {
+        id: string
+        points: number
+        sourceType: string
+        label: string
+        description: string
+        createdAt: string
+    }[]
+    transactionsPagination?: {
+        totalCount: number
+        hasMore: boolean
+        offset: number
+        limit: number
+    }
+}
+
+/**
+ * Full loyalty breakdown with category grouping, timeline, and paginated transactions.
+ * Centrala/admin can pass targetUserId to view any consultant.
+ */
+export async function getLoyaltyBreakdown(
+    targetUserId?: string,
+    txOffset = 0,
+    txLimit = 20,
+): Promise<LoyaltyBreakdownResult> {
+    try {
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return { success: false, error: 'Unauthorized' }
+
+        let userId = user.id
+
+        if (targetUserId && targetUserId !== user.id) {
+            const { data: callerProfile } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', user.id)
+                .single()
+            if (!['admin', 'administrator', 'centrala'].includes(callerProfile?.role || '')) {
+                return { success: false, error: 'Insufficient permissions' }
+            }
+            userId = targetUserId
+        }
+
+        // Fetch profile
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('loyalty_points, loyalty_tier, loyalty_joined_at')
+            .eq('id', userId)
+            .single()
+
+        const totalPoints = profile?.loyalty_points || 0
+        const currentTier = profile?.loyalty_tier || 'bronze'
+        const tierInfo = TIER_CONFIG.find(t => t.name === currentTier) || TIER_CONFIG[0]
+        const pointsToNext = tierInfo.next ? Math.max(0, tierInfo.nextThreshold - totalPoints) : 0
+        const progressPercent = tierInfo.next
+            ? Math.min(100, Math.round(((totalPoints - tierInfo.threshold) / (tierInfo.nextThreshold - tierInfo.threshold)) * 100))
+            : 100
+
+        // Fetch all transactions for aggregation
+        const { data: allTx, error: txError } = await supabase
+            .from('loyalty_transactions')
+            .select('id, points, source_type, description, created_at')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false })
+
+        if (txError) throw txError
+        const transactions = allTx || []
+
+        // Fetch rules for label/category mapping
+        let rules: LoyaltyRule[] = []
+        try {
+            rules = await getLoyaltyRules()
+        } catch {
+            rules = DEFAULT_RULES.map((r, i) => ({ ...r, id: `mock-${i}` }))
+        }
+        const ruleMap = new Map(rules.map(r => [r.code, r]))
+
+        // Build category breakdown
+        const sourceAgg = new Map<string, { points: number; count: number; lastEarned: string | null }>()
+        for (const tx of transactions) {
+            const key = tx.source_type
+            const existing = sourceAgg.get(key)
+            if (existing) {
+                existing.points += tx.points
+                existing.count += 1
+                if (!existing.lastEarned || tx.created_at > existing.lastEarned) {
+                    existing.lastEarned = tx.created_at
+                }
+            } else {
+                sourceAgg.set(key, { points: tx.points, count: 1, lastEarned: tx.created_at })
+            }
+        }
+
+        const categoryMap = new Map<string, CategoryBreakdown>()
+
+        // First add all rules (including ones with 0 transactions) for motivational display
+        for (const rule of rules) {
+            if (!rule.is_active) continue
+            const agg = sourceAgg.get(rule.code)
+            const cat = rule.category
+            if (!categoryMap.has(cat)) {
+                categoryMap.set(cat, { category: cat, totalPoints: 0, percentage: 0, items: [] })
+            }
+            categoryMap.get(cat)!.items.push({
+                sourceType: rule.code,
+                label: rule.name,
+                description: rule.description,
+                totalPoints: agg?.points || 0,
+                count: agg?.count || 0,
+                lastEarned: agg?.lastEarned || null,
+                rulePoints: rule.points,
+            })
+            categoryMap.get(cat)!.totalPoints += (agg?.points || 0)
+            sourceAgg.delete(rule.code)
+        }
+
+        // Add any remaining custom source types not in rules
+        for (const [code, agg] of sourceAgg) {
+            const cat = 'Inne'
+            if (!categoryMap.has(cat)) {
+                categoryMap.set(cat, { category: cat, totalPoints: 0, percentage: 0, items: [] })
+            }
+            categoryMap.get(cat)!.items.push({
+                sourceType: code,
+                label: code.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+                description: null,
+                totalPoints: agg.points,
+                count: agg.count,
+                lastEarned: agg.lastEarned,
+                rulePoints: 0,
+            })
+            categoryMap.get(cat)!.totalPoints += agg.points
+        }
+
+        const byCategory = Array.from(categoryMap.values())
+            .map(c => ({
+                ...c,
+                percentage: totalPoints > 0 ? Math.round((c.totalPoints / totalPoints) * 100) : 0,
+                items: c.items.sort((a, b) => b.totalPoints - a.totalPoints),
+            }))
+            .sort((a, b) => b.totalPoints - a.totalPoints)
+
+        // Build monthly timeline (last 12 months)
+        const timeline: TimelineMonth[] = []
+        const now = new Date()
+        for (let i = 11; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+            const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+            timeline.push({ month: key, points: 0, breakdown: {} })
+        }
+        const timelineMap = new Map(timeline.map(t => [t.month, t]))
+        for (const tx of transactions) {
+            const d = new Date(tx.created_at)
+            const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+            const entry = timelineMap.get(key)
+            if (entry) {
+                entry.points += tx.points
+                const rule = ruleMap.get(tx.source_type)
+                const cat = rule?.category || 'Inne'
+                entry.breakdown[cat] = (entry.breakdown[cat] || 0) + tx.points
+            }
+        }
+
+        // Paginated recent transactions
+        const totalCount = transactions.length
+        const paginatedTx = transactions.slice(txOffset, txOffset + txLimit)
+        const recentTransactions = paginatedTx.map(tx => {
+            const rule = ruleMap.get(tx.source_type)
+            return {
+                id: tx.id,
+                points: tx.points,
+                sourceType: tx.source_type,
+                label: rule?.name || tx.source_type.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()),
+                description: tx.description,
+                createdAt: tx.created_at,
+            }
+        })
+
+        return {
+            success: true,
+            summary: {
+                totalPoints,
+                currentTier,
+                nextTier: tierInfo.next || null,
+                pointsToNext,
+                progressPercent,
+                memberSince: profile?.loyalty_joined_at || null,
+            },
+            byCategory,
+            timeline,
+            recentTransactions,
+            transactionsPagination: {
+                totalCount,
+                hasMore: txOffset + txLimit < totalCount,
+                offset: txOffset,
+                limit: txLimit,
+            },
+        }
+    } catch (error: any) {
+        console.error('Error in getLoyaltyBreakdown:', error)
+        return { success: false, error: error.message }
+    }
+}
+
+// TODO:CACHE — When scale >100 users becomes a concern, wrap getLoyaltyBreakdown
+// with unstable_cache or use revalidateTag('loyalty-breakdown-{userId}') to avoid
+// re-running the aggregation on every page load.
+
+/**
+ * Export loyalty transactions as CSV. Centrala/admin can export for any user.
+ * Supports date range filtering.
+ */
+export async function exportLoyaltyCsv(
+    targetUserId?: string,
+    dateFrom?: string,
+    dateTo?: string,
+): Promise<{ success: boolean; csv?: string; error?: string }> {
+    try {
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return { success: false, error: 'Unauthorized' }
+
+        let userId = user.id
+
+        if (targetUserId && targetUserId !== user.id) {
+            const { data: callerProfile } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', user.id)
+                .single()
+            if (!['admin', 'administrator', 'centrala'].includes(callerProfile?.role || '')) {
+                return { success: false, error: 'Insufficient permissions' }
+            }
+            userId = targetUserId
+        }
+
+        let query = supabase
+            .from('loyalty_transactions')
+            .select('id, points, source_type, description, created_at')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false })
+
+        if (dateFrom) {
+            query = query.gte('created_at', dateFrom)
+        }
+        if (dateTo) {
+            query = query.lte('created_at', dateTo + 'T23:59:59.999Z')
+        }
+
+        const { data, error } = await query
+        if (error) throw error
+
+        let rules: LoyaltyRule[] = []
+        try {
+            rules = await getLoyaltyRules()
+        } catch {
+            rules = DEFAULT_RULES.map((r, i) => ({ ...r, id: `mock-${i}` }))
+        }
+        const ruleMap = new Map(rules.map(r => [r.code, r]))
+
+        const rows = (data || []).map(tx => {
+            const rule = ruleMap.get(tx.source_type)
+            return [
+                tx.created_at,
+                rule?.name || tx.source_type,
+                rule?.category || 'Inne',
+                tx.points,
+                tx.description,
+            ].map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')
+        })
+
+        const header = 'Data,Zdarzenie,Kategoria,Punkty,Opis'
+        const csv = [header, ...rows].join('\n')
+
+        return { success: true, csv }
+    } catch (error: any) {
+        console.error('Error exporting CSV:', error)
+        return { success: false, error: error.message }
+    }
+}

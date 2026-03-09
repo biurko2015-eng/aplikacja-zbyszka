@@ -4,7 +4,10 @@ import React, { useState, useMemo } from 'react'
 import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Star, X } from "lucide-react"
 import type { ConsultantAnalysis } from '@/lib/actions/admin-dashboard'
+import { ConsultantLoyaltyPanel } from './ConsultantLoyaltyPanel'
 
 interface ConsultantAnalysisTabProps {
     consultants: ConsultantAnalysis[]
@@ -35,6 +38,7 @@ type FilterType = 'all' | 'on_project' | 'bench' | 'recruitment'
 export function ConsultantAnalysisTab({ consultants }: ConsultantAnalysisTabProps) {
     const [filter, setFilter] = useState<FilterType>('all')
     const [searchQuery, setSearchQuery] = useState('')
+    const [selectedConsultant, setSelectedConsultant] = useState<ConsultantAnalysis | null>(null)
 
     const counts = useMemo(() => ({
         all: consultants.length,
@@ -118,6 +122,7 @@ export function ConsultantAnalysisTab({ consultants }: ConsultantAnalysisTabProp
                                     <th className="text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 py-3">Delivery Lead</th>
                                     <th className="text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 py-3">Bench (dni)</th>
                                     <th className="text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 py-3">Match</th>
+                                    <th className="text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 py-3">Punkty</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -187,6 +192,17 @@ export function ConsultantAnalysisTab({ consultants }: ConsultantAnalysisTabProp
                                                     <span className="text-sm text-muted-foreground">—</span>
                                                 )}
                                             </td>
+                                            <td className="px-3 py-3 text-center">
+                                                <Button
+                                                    variant={selectedConsultant?.id === c.id ? "default" : "ghost"}
+                                                    size="sm"
+                                                    className="gap-1 text-xs h-7"
+                                                    onClick={() => setSelectedConsultant(selectedConsultant?.id === c.id ? null : c)}
+                                                >
+                                                    <Star className="h-3 w-3" />
+                                                    {c.loyalty_points ?? 0}
+                                                </Button>
+                                            </td>
                                         </tr>
                                     )
                                 })}
@@ -207,6 +223,25 @@ export function ConsultantAnalysisTab({ consultants }: ConsultantAnalysisTabProp
                     )}
                 </CardContent>
             </Card>
+
+            {selectedConsultant && (
+                <Card className="bg-background/50 border-white/10">
+                    <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-semibold text-white">
+                                Punkty lojalnościowe: {selectedConsultant.full_name}
+                            </h3>
+                            <Button variant="ghost" size="sm" onClick={() => setSelectedConsultant(null)}>
+                                <X className="h-4 w-4" />
+                            </Button>
+                        </div>
+                        <ConsultantLoyaltyPanel
+                            consultantId={selectedConsultant.id}
+                            consultantName={selectedConsultant.full_name}
+                        />
+                    </CardContent>
+                </Card>
+            )}
         </div>
     )
 }

@@ -19,8 +19,11 @@ import {
     Users,
     Search,
     Briefcase,
-    Settings
+    Settings,
+    BarChart3
 } from "lucide-react"
+import { MyPointsTab } from '@/components/dashboard/loyalty/MyPointsTab'
+import { TIER_CONFIG } from '@/lib/actions/loyalty'
 
 export default async function LoyaltyPage() {
     const supabase = createClient()
@@ -43,14 +46,7 @@ export default async function LoyaltyPage() {
 
     const isAdmin = role === 'admin' || role === 'administrator'
 
-    // Compute tier progress
-    const tierConfig = [
-        { name: 'bronze', label: 'BRONZE', threshold: 0, next: 'silver', nextThreshold: 1000 },
-        { name: 'silver', label: 'SILVER', threshold: 1000, next: 'gold', nextThreshold: 3000 },
-        { name: 'gold', label: 'GOLD', threshold: 3000, next: 'platinum', nextThreshold: 6000 },
-        { name: 'platinum', label: 'PLATINUM', threshold: 6000, next: null, nextThreshold: 6000 },
-    ]
-    const currentTierInfo = tierConfig.find(t => t.name === loyaltyTier) || tierConfig[0]
+    const currentTierInfo = TIER_CONFIG.find(t => t.name === loyaltyTier) || TIER_CONFIG[0]
     const pointsToNext = currentTierInfo.next
         ? Math.max(0, currentTierInfo.nextThreshold - loyaltyPoints)
         : 0
@@ -126,14 +122,22 @@ export default async function LoyaltyPage() {
                 </Card>
             </div>
 
-            <Tabs defaultValue="overview" className="space-y-4">
-                <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 h-auto">
+            <Tabs defaultValue="mypoints" className="space-y-4">
+                <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 h-auto">
+                    <TabsTrigger value="mypoints" className="gap-1">
+                        <BarChart3 className="h-3.5 w-3.5" />
+                        Moje punkty
+                    </TabsTrigger>
                     <TabsTrigger value="overview">Przegląd</TabsTrigger>
                     <TabsTrigger value="roles">Wsparcie</TabsTrigger>
                     <TabsTrigger value="tiers">Poziomy</TabsTrigger>
-                    <TabsTrigger value="earning">Punkty</TabsTrigger>
+                    <TabsTrigger value="earning">Jak zdobywać</TabsTrigger>
                     <TabsTrigger value="faq">FAQ</TabsTrigger>
                 </TabsList>
+
+                <TabsContent value="mypoints" className="space-y-4">
+                    <MyPointsTab />
+                </TabsContent>
 
                 <TabsContent value="overview" className="space-y-4">
                     <Card>
