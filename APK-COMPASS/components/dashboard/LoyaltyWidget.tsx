@@ -3,7 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Sparkles, Trophy } from "lucide-react"
-import { TIER_CONFIG } from "@/lib/actions/loyalty"
+import { TIER_CONFIG } from "@/lib/loyalty-config"
 
 interface LoyaltyWidgetProps {
     points: number

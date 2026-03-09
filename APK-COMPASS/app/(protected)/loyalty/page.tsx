@@ -23,7 +23,7 @@ import {
     BarChart3
 } from "lucide-react"
 import { MyPointsTab } from '@/components/dashboard/loyalty/MyPointsTab'
-import { TIER_CONFIG } from '@/lib/actions/loyalty'
+import { TIER_CONFIG } from '@/lib/loyalty-config'
 
 export default async function LoyaltyPage() {
     const supabase = createClient()

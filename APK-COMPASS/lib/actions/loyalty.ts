@@ -232,13 +232,11 @@ export async function getTierProgress() {
     }
 }
 
-// ── Tier config (single source of truth — aligned with DB trigger) ──
-export const TIER_CONFIG = [
-    { name: 'bronze', label: 'BRONZE', threshold: 0, next: 'silver', nextThreshold: 500 },
-    { name: 'silver', label: 'SILVER', threshold: 500, next: 'gold', nextThreshold: 2000 },
-    { name: 'gold', label: 'GOLD', threshold: 2000, next: 'platinum', nextThreshold: 5000 },
-    { name: 'platinum', label: 'PLATINUM', threshold: 5000, next: null, nextThreshold: 5000 },
-] as const
+// ── Tier config — imported from shared module (NOT re-exported) ──
+// TIER_CONFIG lives in @/lib/loyalty-config.ts so it can be imported by
+// client components. We import it here for internal use only — do NOT
+// re-export from 'use server' files (Next.js only allows async fn exports).
+import { TIER_CONFIG } from '@/lib/loyalty-config'
 
 // ── Breakdown types ──
 
