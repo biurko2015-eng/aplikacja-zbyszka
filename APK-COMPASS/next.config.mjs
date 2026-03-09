@@ -20,6 +20,7 @@ const nextConfig = {
     // Performance optimizations
     compress: true,
     swcMinify: true,
+    serverExternalPackages: ['pg'],
     experimental: {
         // PERF: Tree-shake barrel exports for faster builds + smaller bundles
         optimizePackageImports: [
