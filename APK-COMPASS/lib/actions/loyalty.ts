@@ -209,25 +209,19 @@ export async function getTierProgress() {
         const points = profile.loyalty_points || 0
         const currentTier = profile.loyalty_tier || 'bronze'
 
-        let nextTier = 'silver'
-        let threshold = 500
-
-        if (points >= 2000) {
-            nextTier = 'platinum' // or max
-            threshold = 10000 // unreachable cap
-        } else if (points >= 500) {
-            nextTier = 'gold'
-            threshold = 2000
-        }
-
-        const missing = Math.max(0, threshold - points)
-        const progressPercent = Math.min(100, (points / threshold) * 100)
+        const tierInfo = TIER_CONFIG.find(t => t.name === currentTier) || TIER_CONFIG[0]
+        const nextTier = tierInfo.next || null
+        const threshold = tierInfo.nextThreshold
+        const missing = tierInfo.next ? Math.max(0, threshold - points) : 0
+        const progressPercent = tierInfo.next
+            ? Math.min(100, Math.round(((points - tierInfo.threshold) / (threshold - tierInfo.threshold)) * 100))
+            : 100
 
         return {
             success: true,
             currentPoints: points,
             currentTier,
-            nextTier,
+            nextTier: nextTier || 'max',
             nextTierThreshold: threshold,
             pointsToNextTier: missing,
             progressPercent
@@ -238,12 +232,12 @@ export async function getTierProgress() {
     }
 }
 
-// ── Tier config (single source of truth) ──
+// ── Tier config (single source of truth — aligned with DB trigger) ──
 export const TIER_CONFIG = [
-    { name: 'bronze', label: 'BRONZE', threshold: 0, next: 'silver', nextThreshold: 1000 },
-    { name: 'silver', label: 'SILVER', threshold: 1000, next: 'gold', nextThreshold: 3000 },
-    { name: 'gold', label: 'GOLD', threshold: 3000, next: 'platinum', nextThreshold: 6000 },
-    { name: 'platinum', label: 'PLATINUM', threshold: 6000, next: null, nextThreshold: 6000 },
+    { name: 'bronze', label: 'BRONZE', threshold: 0, next: 'silver', nextThreshold: 500 },
+    { name: 'silver', label: 'SILVER', threshold: 500, next: 'gold', nextThreshold: 2000 },
+    { name: 'gold', label: 'GOLD', threshold: 2000, next: 'platinum', nextThreshold: 5000 },
+    { name: 'platinum', label: 'PLATINUM', threshold: 5000, next: null, nextThreshold: 5000 },
 ] as const
 
 // ── Breakdown types ──

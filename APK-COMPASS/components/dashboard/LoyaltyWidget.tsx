@@ -2,7 +2,8 @@
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { Sparkles, Trophy, Star } from "lucide-react"
+import { Sparkles, Trophy } from "lucide-react"
+import { TIER_CONFIG } from "@/lib/actions/loyalty"
 
 interface LoyaltyWidgetProps {
     points: number
@@ -10,23 +11,16 @@ interface LoyaltyWidgetProps {
 }
 
 export function LoyaltyWidget({ points, tier }: LoyaltyWidgetProps) {
-    // Calculate progress to next tier
-    let nextTier = 'silver'
-    let nextThreshold = 500
-    let prevThreshold = 0
+    // Use TIER_CONFIG as single source of truth
+    const tierInfo = TIER_CONFIG.find(t => t.name === tier.toLowerCase()) || TIER_CONFIG[0]
+    const nextTier = tierInfo.next || 'max'
+    const prevThreshold = tierInfo.threshold
+    const nextThreshold = tierInfo.nextThreshold
 
-    if (points >= 500 && points < 2000) {
-        nextTier = 'gold'
-        prevThreshold = 500
-        nextThreshold = 2000
-    } else if (points >= 2000) {
-        nextTier = 'platinum'
-        prevThreshold = 2000
-        nextThreshold = 10000 // Cap
-    }
-
-    const currentProgress = Math.min(100, Math.max(0, ((points - prevThreshold) / (nextThreshold - prevThreshold)) * 100))
-    const pointsToNext = Math.max(0, nextThreshold - points)
+    const currentProgress = tierInfo.next
+        ? Math.min(100, Math.max(0, ((points - prevThreshold) / (nextThreshold - prevThreshold)) * 100))
+        : 100
+    const pointsToNext = tierInfo.next ? Math.max(0, nextThreshold - points) : 0
 
     const getTierColor = (t: string) => {
         switch (t.toLowerCase()) {
@@ -71,9 +65,15 @@ export function LoyaltyWidget({ points, tier }: LoyaltyWidgetProps) {
                         <span>{nextTier}</span>
                     </div>
                     <Progress value={currentProgress} className="h-1.5 bg-black/20" indicatorClassName={`bg-${getTierColor(tier).split('-')[1]}-500`} />
-                    <p className="text-xs text-slate-600 text-right">
-                        Brakuje <span className="text-white font-mono">{pointsToNext}</span> pkt
-                    </p>
+                    {tierInfo.next ? (
+                        <p className="text-xs text-slate-600 text-right">
+                            Brakuje <span className="text-white font-mono">{pointsToNext}</span> pkt
+                        </p>
+                    ) : (
+                        <p className="text-xs text-slate-600 text-right">
+                            Najwyższy poziom!
+                        </p>
+                    )}
                 </div>
             </CardContent>
         </Card>

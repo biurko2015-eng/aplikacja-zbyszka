@@ -312,7 +312,7 @@ export default async function LoyaltyPage() {
                                     <CardTitle>BRONZE</CardTitle>
                                     <div className="h-6 w-6 rounded-full bg-[#CD7F32]" />
                                 </div>
-                                <CardDescription>0 - 999 pkt</CardDescription>
+                                <CardDescription>0 - 499 pkt</CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <ul className="space-y-2 text-sm">
@@ -329,7 +329,7 @@ export default async function LoyaltyPage() {
                                     <CardTitle>SILVER</CardTitle>
                                     <div className="h-6 w-6 rounded-full bg-[#C0C0C0]" />
                                 </div>
-                                <CardDescription>1000 - 2999 pkt</CardDescription>
+                                <CardDescription>500 - 1999 pkt</CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <ul className="space-y-2 text-sm">
@@ -347,7 +347,7 @@ export default async function LoyaltyPage() {
                                     <CardTitle>GOLD</CardTitle>
                                     <div className="h-6 w-6 rounded-full bg-[#FFD700]" />
                                 </div>
-                                <CardDescription>3000 - 5999 pkt</CardDescription>
+                                <CardDescription>2000 - 4999 pkt</CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <ul className="space-y-2 text-sm font-medium">
@@ -365,7 +365,7 @@ export default async function LoyaltyPage() {
                                     <CardTitle>PLATINUM</CardTitle>
                                     <div className="h-6 w-6 rounded-full bg-[#E5B4F3]" />
                                 </div>
-                                <CardDescription>6000+ pkt</CardDescription>
+                                <CardDescription>5000+ pkt</CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <ul className="space-y-2 text-sm">
@@ -452,7 +452,7 @@ export default async function LoyaltyPage() {
                             <div>
                                 <h4 className="font-semibold mb-1">Kiedy następuje awans?</h4>
                                 <p className="text-muted-foreground text-sm">
-                                    Natychmiast po przekroczeniu progu (np. 1000 pkt dla Silver). Otrzymasz powiadomienie.
+                                    Natychmiast po przekroczeniu progu (np. 500 pkt dla Silver). Otrzymasz powiadomienie.
                                 </p>
                             </div>
                             <div>
