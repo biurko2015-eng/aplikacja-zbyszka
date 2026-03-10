@@ -7,6 +7,7 @@ import { RecruiterEfficiencyTab } from './RecruiterEfficiencyTab'
 import { DeliveryLeadEfficiencyTab } from './DeliveryLeadEfficiencyTab'
 import { ConsultantAnalysisTab } from './ConsultantAnalysisTab'
 import { ActivityFeedTab } from './ActivityFeedTab'
+import { ExpiringContractsWidget } from './ExpiringContractsWidget'
 import type { AdminDashboardData } from '@/lib/actions/admin-dashboard'
 
 interface AdminPanelContentProps {
@@ -134,6 +135,11 @@ export function AdminPanelContent({ dashboardData }: AdminPanelContentProps) {
                         </Card>
                     )}
                 </div>
+            )}
+
+            {/* ─── Expiring Contracts Widget ───────────────────────────── */}
+            {data?.expiringContractsList && data.expiringContractsList.length > 0 && (
+                <ExpiringContractsWidget contracts={data.expiringContractsList} />
             )}
 
             {/* ─── Tabs ──────────────────────────────────────────────────── */}

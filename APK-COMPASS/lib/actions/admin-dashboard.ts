@@ -58,6 +58,17 @@ export interface ActivityItem {
     color: string // dot color for timeline
 }
 
+export interface ExpiringContractItem {
+    id: string
+    consultant_name: string
+    client_name: string
+    project_name: string
+    position: string
+    end_date: string
+    days_remaining: number
+    status: string
+}
+
 export interface AdminDashboardData {
     // KPI
     totalConsultants: number
@@ -70,6 +81,7 @@ export interface AdminDashboardData {
     // Alerts
     benchOver30: number
     expiringContracts: number
+    expiringContractsList: ExpiringContractItem[]
     newRecruits: number
     // Tabs
     recruiters: RecruiterEfficiency[]
@@ -106,6 +118,9 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     if (!user) throw new Error('Not authenticated')
 
     // Parallel fetch all data
+    const today = new Date().toISOString().split('T')[0]
+    const thirtyDaysFromNow = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+
     const [
         profilesResult,
         assignmentsResult,
@@ -113,6 +128,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
         centralaResult,
         adminResult,
         candidatesCountResult,
+        expiringContractsResult,
     ] = await Promise.all([
         supabase
             .from('profiles')
@@ -134,6 +150,12 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
             .from('candidates')
             .select('id', { count: 'exact', head: true })
             .eq('candidate_status', 'kandydat'),
+        supabase
+            .from('contracts')
+            .select('id, consultant_id, client_name, project_name, position, end_date, status, hourly_rate')
+            .in('status', ['active', 'ending_soon'])
+            .gte('end_date', today)
+            .lte('end_date', thirtyDaysFromNow),
     ])
 
     const profiles = profilesResult.data || []
@@ -150,6 +172,25 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     // Build profile lookup
     const profileMap = new Map(profiles.map(p => [p.id, p]))
     const profileByEmail = new Map(profiles.map(p => [p.email, p]))
+
+    // ─── Expiring Contracts ──────────────────────────────────────────────
+    const expiringContractsRaw = expiringContractsResult.data || []
+    const expiringContractsList: ExpiringContractItem[] = expiringContractsRaw.map(c => {
+        const profile = profileMap.get(c.consultant_id)
+        const daysRemaining = Math.max(0, Math.ceil(
+            (new Date(c.end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+        ))
+        return {
+            id: c.id,
+            consultant_name: profile?.full_name || 'Nieznany',
+            client_name: c.client_name,
+            project_name: c.project_name,
+            position: c.position,
+            end_date: c.end_date,
+            days_remaining: daysRemaining,
+            status: c.status,
+        }
+    }).sort((a, b) => a.days_remaining - b.days_remaining)
 
     // ─── KPI ────────────────────────────────────────────────────────────────
     const totalCandidates = candidatesCountResult.count || 0
@@ -373,7 +414,8 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
         totalPointsIssued: totalPoints,
         topConsultant,
         benchOver30: consultantAnalysis.filter(c => c.bench_days > 30).length,
-        expiringContracts: 0,
+        expiringContracts: expiringContractsList.length,
+        expiringContractsList,
         newRecruits: consultants.filter(c => new Date(c.created_at) >= oneMonthAgo).length,
         centralaTeam,
     }
