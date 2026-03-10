@@ -79,7 +79,10 @@ export function ConsultantProfileView() {
                         fte_status: profile.fte_status || '',
                         max_monthly_hours: profile.max_monthly_hours || 160,
                         full_name: profile.full_name || '',
-                        phone: profile.phone || ''
+                        phone: profile.phone || '',
+                        skills: profile.skills || [],
+                        tech_stack: profile.tech_stack || [],
+                        certifications: profile.certifications || [],
                     })
                 }
             } catch (e) {

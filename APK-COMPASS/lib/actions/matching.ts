@@ -83,6 +83,9 @@ export interface ProfileUpdateData {
     skills?: string[]
     avatar_url?: string
     cv_url?: string
+    tech_stack?: Record<string, unknown>[]
+    certifications?: Record<string, unknown>[]
+    work_preferences?: Record<string, unknown>
 }
 
 export async function updateProfileFull(data: ProfileUpdateData): Promise<{ success: true; warning?: string } | { success: false; error: string }> {
