@@ -331,17 +331,41 @@ export async function getConsultantProfile360(consultantId: string) {
         return { success: false as const, error: 'Brak uprawnień' }
     }
 
-    const { data: profile, error } = await supabase
+    const selectCols = 'id, full_name, email, avatar_url, phone, bio, skills, tech_stack, certifications, work_preferences, admin_notes, current_status, loyalty_tier, loyalty_points, experience_years, created_at'
+
+    const { data: profile } = await supabase
         .from('profiles')
-        .select('id, full_name, email, avatar_url, phone, bio, skills, tech_stack, certifications, work_preferences, admin_notes, current_status, loyalty_tier, loyalty_points, experience_years, created_at')
+        .select(selectCols)
         .eq('id', consultantId)
         .single()
 
-    if (error || !profile) {
-        return { success: false as const, error: 'Nie znaleziono profilu' }
+    if (profile) {
+        return { success: true as const, profile }
     }
 
-    return { success: true as const, profile }
+    const { data: candidate } = await supabase
+        .from('candidates')
+        .select('id, full_name, email, avatar_url, bio, skills, current_status, experience_years, created_at')
+        .eq('id', consultantId)
+        .single()
+
+    if (candidate) {
+        return {
+            success: true as const,
+            profile: {
+                ...candidate,
+                phone: null,
+                loyalty_tier: null,
+                loyalty_points: null,
+                tech_stack: [],
+                certifications: [],
+                work_preferences: {},
+                admin_notes: [],
+            }
+        }
+    }
+
+    return { success: false as const, error: 'Nie znaleziono profilu' }
 }
 
 export async function searchCandidatesByName(query: string) {
