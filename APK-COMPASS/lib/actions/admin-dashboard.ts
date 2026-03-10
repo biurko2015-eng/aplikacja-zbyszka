@@ -37,6 +37,7 @@ export interface ConsultantAnalysis {
     email: string
     avatar_url: string | null
     tech_stack: string | null
+    skills: string[]
     current_status: string
     loyalty_tier: string
     loyalty_points: number
@@ -132,7 +133,7 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
     ] = await Promise.all([
         supabase
             .from('profiles')
-            .select('id, full_name, email, avatar_url, role, current_status, loyalty_tier, loyalty_points, created_at, updated_at')
+            .select('id, full_name, email, avatar_url, role, current_status, loyalty_tier, loyalty_points, skills, created_at, updated_at')
             .order('full_name'),
         supabase
             .from('consultant_assignments')
@@ -345,7 +346,8 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
             full_name: c.full_name || 'Nieznany',
             email: c.email || '',
             avatar_url: c.avatar_url,
-            tech_stack: null, // Will be computed from skills if available
+            tech_stack: Array.isArray(c.skills) ? c.skills.join(', ') : null,
+            skills: Array.isArray(c.skills) ? c.skills : [],
             current_status: c.current_status || 'bench',
             loyalty_tier: c.loyalty_tier || 'bronze',
             loyalty_points: c.loyalty_points || 0,

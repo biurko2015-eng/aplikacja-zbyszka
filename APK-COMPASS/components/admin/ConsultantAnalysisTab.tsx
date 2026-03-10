@@ -1,14 +1,15 @@
 'use client'
 
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useCallback } from 'react'
 import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Star, X, User as UserIcon } from "lucide-react"
+import { Star, X, User as UserIcon, SlidersHorizontal } from "lucide-react"
 import type { ConsultantAnalysis } from '@/lib/actions/admin-dashboard'
 import { ConsultantLoyaltyPanel } from './ConsultantLoyaltyPanel'
 import { ConsultantProfile360Panel } from './ConsultantProfile360Panel'
+import { MultiSelectFilter, FilterPresetsManager } from './filters'
 
 interface ConsultantAnalysisTabProps {
     consultants: ConsultantAnalysis[]
@@ -62,6 +63,21 @@ export function ConsultantAnalysisTab({ consultants }: ConsultantAnalysisTabProp
     const [searchQuery, setSearchQuery] = useState('')
     const [selectedConsultant, setSelectedConsultant] = useState<ConsultantAnalysis | null>(null)
     const [profileConsultant, setProfileConsultant] = useState<ConsultantAnalysis | null>(null)
+    const [selectedSkills, setSelectedSkills] = useState<string[]>([])
+    const [showAdvanced, setShowAdvanced] = useState(false)
+    const [pageSize, setPageSize] = useState(20)
+
+    const allSkills = useMemo(() => {
+        const skillMap = new Map<string, number>()
+        consultants.forEach(c => {
+            if (c.skills) {
+                c.skills.forEach(s => skillMap.set(s, (skillMap.get(s) || 0) + 1))
+            }
+        })
+        return Array.from(skillMap)
+            .sort((a, b) => b[1] - a[1])
+            .map(([value, count]) => ({ value, label: value, count }))
+    }, [consultants])
 
     const isNewConsultant = (c: ConsultantAnalysis) => {
         if (!c.created_at) return false
@@ -112,6 +128,14 @@ export function ConsultantAnalysisTab({ consultants }: ConsultantAnalysisTabProp
             )
         }
 
+        if (selectedSkills.length > 0) {
+            list = list.filter(c =>
+                c.skills && selectedSkills.every(skill =>
+                    c.skills.some(s => s.toLowerCase() === skill.toLowerCase())
+                )
+            )
+        }
+
         list.sort((a, b) => {
             switch (sortField) {
                 case 'name':
@@ -128,9 +152,9 @@ export function ConsultantAnalysisTab({ consultants }: ConsultantAnalysisTabProp
         })
 
         return list
-    }, [consultants, statusFilter, tierFilter, benchFilter, sortField, searchQuery])
+    }, [consultants, statusFilter, tierFilter, benchFilter, sortField, searchQuery, selectedSkills])
 
-    const hasActiveFilters = statusFilter !== 'all' || tierFilter !== 'all' || benchFilter !== 'all' || searchQuery.trim() !== ''
+    const hasActiveFilters = statusFilter !== 'all' || tierFilter !== 'all' || benchFilter !== 'all' || searchQuery.trim() !== '' || selectedSkills.length > 0
 
     const clearAllFilters = () => {
         setStatusFilter('all')
@@ -138,7 +162,26 @@ export function ConsultantAnalysisTab({ consultants }: ConsultantAnalysisTabProp
         setBenchFilter('all')
         setSearchQuery('')
         setSortField('name')
+        setSelectedSkills([])
     }
+
+    const currentFilters = useMemo(() => ({
+        statusFilter,
+        tierFilter,
+        benchFilter,
+        sortField,
+        searchQuery,
+        selectedSkills,
+    }), [statusFilter, tierFilter, benchFilter, sortField, searchQuery, selectedSkills])
+
+    const applyPreset = useCallback((filters: Record<string, any>) => {
+        if (filters.statusFilter) setStatusFilter(filters.statusFilter)
+        if (filters.tierFilter) setTierFilter(filters.tierFilter)
+        if (filters.benchFilter) setBenchFilter(filters.benchFilter)
+        if (filters.sortField) setSortField(filters.sortField)
+        if (filters.searchQuery !== undefined) setSearchQuery(filters.searchQuery)
+        if (filters.selectedSkills) setSelectedSkills(filters.selectedSkills)
+    }, [])
 
     const statusFilters: { id: StatusFilter; label: string; count: number }[] = [
         { id: 'all', label: 'Wszystkie', count: counts.all },
@@ -173,18 +216,42 @@ export function ConsultantAnalysisTab({ consultants }: ConsultantAnalysisTabProp
         <div className="space-y-4">
             {/* Advanced Filter Bar */}
             <div className="bg-card/50 rounded-xl p-4 border border-white/5 space-y-4">
-                {/* Row 1: Search + Sort */}
+                {/* Row 1: Search + Multi-selects + Sort */}
                 <div className="flex flex-wrap items-center gap-3">
                     <div className="relative flex-1 min-w-[200px] max-w-sm">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">&#128269;</span>
                         <input
                             type="text"
-                            placeholder="Szukaj po nazwie lub email..."
+                            placeholder="Szukaj po nazwie, email, technologii..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full bg-transparent border border-white/10 rounded-lg pl-9 pr-4 py-2 text-sm text-white placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 transition-colors"
                         />
                     </div>
+
+                    {allSkills.length > 0 && (
+                        <MultiSelectFilter
+                            label="Technologie"
+                            options={allSkills}
+                            selected={selectedSkills}
+                            onChange={setSelectedSkills}
+                        />
+                    )}
+
+                    <button
+                        onClick={() => setShowAdvanced(!showAdvanced)}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs border transition-all ${
+                            showAdvanced || hasActiveFilters
+                                ? 'bg-primary/10 border-primary/30 text-primary'
+                                : 'bg-card/80 border-white/10 text-muted-foreground hover:bg-white/5'
+                        }`}
+                    >
+                        <SlidersHorizontal className="h-3.5 w-3.5" />
+                        Filtry
+                        {hasActiveFilters && (
+                            <Badge variant="secondary" className="h-4 px-1.5 text-[10px] bg-primary/20">!</Badge>
+                        )}
+                    </button>
 
                     <div className="flex items-center gap-2 ml-auto">
                         <span className="text-xs text-muted-foreground">Sortuj:</span>
@@ -200,50 +267,62 @@ export function ConsultantAnalysisTab({ consultants }: ConsultantAnalysisTabProp
                     </div>
                 </div>
 
-                {/* Row 2: Status */}
-                <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-xs text-muted-foreground font-medium w-14 shrink-0">Status:</span>
-                    {statusFilters.map(f => (
-                        <FilterBadge key={f.id} active={statusFilter === f.id} onClick={() => setStatusFilter(f.id)}>
-                            {f.label} <span className="ml-1 opacity-60">({f.count})</span>
-                        </FilterBadge>
-                    ))}
-                </div>
+                {/* Advanced filters (collapsible) */}
+                {showAdvanced && (
+                    <div className="space-y-3 pt-2 border-t border-white/5">
+                        {/* Status */}
+                        <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-xs text-muted-foreground font-medium w-14 shrink-0">Status:</span>
+                            {statusFilters.map(f => (
+                                <FilterBadge key={f.id} active={statusFilter === f.id} onClick={() => setStatusFilter(f.id)}>
+                                    {f.label} <span className="ml-1 opacity-60">({f.count})</span>
+                                </FilterBadge>
+                            ))}
+                        </div>
 
-                {/* Row 3: Tier */}
-                <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-xs text-muted-foreground font-medium w-14 shrink-0">Tier:</span>
-                    {tierFilters.map(f => (
-                        <FilterBadge key={f.id} active={tierFilter === f.id} onClick={() => setTierFilter(f.id)}>
-                            {f.label}
-                        </FilterBadge>
-                    ))}
-                </div>
+                        {/* Tier */}
+                        <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-xs text-muted-foreground font-medium w-14 shrink-0">Tier:</span>
+                            {tierFilters.map(f => (
+                                <FilterBadge key={f.id} active={tierFilter === f.id} onClick={() => setTierFilter(f.id)}>
+                                    {f.label}
+                                </FilterBadge>
+                            ))}
+                        </div>
 
-                {/* Row 4: Bench days */}
-                <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-xs text-muted-foreground font-medium w-14 shrink-0">Bench:</span>
-                    {benchOptions.map(f => (
-                        <FilterBadge key={f.id} active={benchFilter === f.id} onClick={() => setBenchFilter(f.id)}>
-                            {f.label}
-                        </FilterBadge>
-                    ))}
-                </div>
+                        {/* Bench days */}
+                        <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-xs text-muted-foreground font-medium w-14 shrink-0">Bench:</span>
+                            {benchOptions.map(f => (
+                                <FilterBadge key={f.id} active={benchFilter === f.id} onClick={() => setBenchFilter(f.id)}>
+                                    {f.label}
+                                </FilterBadge>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
-                {/* Summary row */}
-                <div className="flex items-center justify-between pt-1 border-t border-white/5">
-                    <p className="text-xs text-muted-foreground">
-                        Znaleziono <span className="text-white font-medium">{filtered.length}</span> konsultantów
-                    </p>
-                    {hasActiveFilters && (
-                        <button
-                            onClick={clearAllFilters}
-                            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-white transition-colors"
-                        >
-                            <X className="h-3 w-3" />
-                            Wyczyść filtry
-                        </button>
-                    )}
+                {/* Presets + summary */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-1 border-t border-white/5">
+                    <div className="flex items-center gap-3 flex-wrap">
+                        <p className="text-xs text-muted-foreground">
+                            Znaleziono <span className="text-white font-medium">{filtered.length}</span> konsultantów
+                        </p>
+                        {hasActiveFilters && (
+                            <button
+                                onClick={clearAllFilters}
+                                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-white transition-colors"
+                            >
+                                <X className="h-3 w-3" />
+                                Wyczyść filtry
+                            </button>
+                        )}
+                    </div>
+                    <FilterPresetsManager
+                        currentFilters={currentFilters}
+                        onApplyPreset={applyPreset}
+                        storageKey="consultants"
+                    />
                 </div>
             </div>
 
@@ -265,7 +344,7 @@ export function ConsultantAnalysisTab({ consultants }: ConsultantAnalysisTabProp
                                 </tr>
                             </thead>
                             <tbody>
-                                {filtered.slice(0, 20).map((c) => {
+                                {filtered.slice(0, pageSize).map((c) => {
                                     const status = statusConfig[c.current_status] || statusConfig['bench']
                                     const tier = tierConfig[c.loyalty_tier.toLowerCase()] || tierConfig['bronze']
 
@@ -361,11 +440,19 @@ export function ConsultantAnalysisTab({ consultants }: ConsultantAnalysisTabProp
                             </tbody>
                         </table>
                     </div>
-                    {filtered.length > 20 && (
-                        <div className="px-4 py-3 text-center border-t border-white/5">
+                    {filtered.length > pageSize && (
+                        <div className="px-4 py-3 text-center border-t border-white/5 flex items-center justify-center gap-3">
                             <p className="text-xs text-muted-foreground">
-                                Wyświetlono 20 z {filtered.length} konsultantów
+                                Wyświetlono {Math.min(pageSize, filtered.length)} z {filtered.length} konsultantów
                             </p>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-xs h-7"
+                                onClick={() => setPageSize(prev => prev + 20)}
+                            >
+                                Pokaż więcej
+                            </Button>
                         </div>
                     )}
                     {filtered.length === 0 && (
