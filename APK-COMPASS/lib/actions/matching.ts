@@ -345,7 +345,7 @@ export async function getConsultantProfile360(consultantId: string) {
 
     const { data: candidate } = await supabase
         .from('candidates')
-        .select('id, full_name, email, avatar_url, bio, skills, current_status, experience_years, created_at')
+        .select('id, full_name, email, avatar_url, bio, skills, tech_stack, certifications, work_preferences, admin_notes, current_status, experience_years, created_at')
         .eq('id', consultantId)
         .single()
 
@@ -357,10 +357,6 @@ export async function getConsultantProfile360(consultantId: string) {
                 phone: null,
                 loyalty_tier: null,
                 loyalty_points: null,
-                tech_stack: [],
-                certifications: [],
-                work_preferences: {},
-                admin_notes: [],
             }
         }
     }
