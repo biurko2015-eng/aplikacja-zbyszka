@@ -23,7 +23,7 @@ export async function addLoyaltyPoints(
 
         // Security check - primarily for admin use or internal system calls
         const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return { success: false, error: 'Unauthorized' }
+        if (!user) return { success: false, error: 'Brak autoryzacji' }
 
         // Check role
         const { data: callerProfile } = await supabase
@@ -41,7 +41,7 @@ export async function addLoyaltyPoints(
         // or be split into "adminAddPoints" vs internal "systemAddPoints".
         // Assuming this function is for the Admin UI manual add:
         if (!hasPermission) {
-            return { success: false, error: 'Insufficient permissions' }
+            return { success: false, error: 'Niewystarczające uprawnienia' }
         }
 
         const { error } = await supabase.from('loyalty_transactions').insert({
@@ -141,12 +141,12 @@ export async function getLoyaltyRules() {
 export async function updateLoyaltyRule(id: string, updates: Partial<LoyaltyRule>) {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { success: false, error: 'Unauthorized' }
+    if (!user) return { success: false, error: 'Brak autoryzacji' }
 
     // Check admin role
     const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
     if (!['admin', 'administrator', 'centrala'].includes(profile?.role || '')) {
-        return { success: false, error: 'Insufficient permissions' }
+        return { success: false, error: 'Niewystarczające uprawnienia' }
     }
 
     if (id.startsWith('mock-')) {
@@ -171,7 +171,7 @@ export async function getLoyaltyHistory(limit = 10) {
     try {
         const supabase = createClient()
         const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return { success: false, error: 'Unauthorized' }
+        if (!user) return { success: false, error: 'Brak autoryzacji' }
 
         const { data, error } = await supabase
             .from('loyalty_transactions')
@@ -196,7 +196,7 @@ export async function getTierProgress() {
     try {
         const supabase = createClient()
         const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return { success: false, error: 'Unauthorized' }
+        if (!user) return { success: false, error: 'Brak autoryzacji' }
 
         const { data: profile } = await supabase
             .from('profiles')
@@ -204,7 +204,7 @@ export async function getTierProgress() {
             .eq('id', user.id)
             .single()
 
-        if (!profile) return { success: false, error: 'Profile not found' }
+        if (!profile) return { success: false, error: 'Nie znaleziono profilu' }
 
         const points = profile.loyalty_points || 0
         const currentTier = profile.loyalty_tier || 'bronze'
@@ -302,7 +302,7 @@ export async function getLoyaltyBreakdown(
     try {
         const supabase = createClient()
         const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return { success: false, error: 'Unauthorized' }
+        if (!user) return { success: false, error: 'Brak autoryzacji' }
 
         let userId = user.id
 
@@ -313,7 +313,7 @@ export async function getLoyaltyBreakdown(
                 .eq('id', user.id)
                 .single()
             if (!['admin', 'administrator', 'centrala'].includes(callerProfile?.role || '')) {
-                return { success: false, error: 'Insufficient permissions' }
+                return { success: false, error: 'Niewystarczające uprawnienia' }
             }
             userId = targetUserId
         }
@@ -495,7 +495,7 @@ export async function exportLoyaltyCsv(
     try {
         const supabase = createClient()
         const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return { success: false, error: 'Unauthorized' }
+        if (!user) return { success: false, error: 'Brak autoryzacji' }
 
         let userId = user.id
 
@@ -506,7 +506,7 @@ export async function exportLoyaltyCsv(
                 .eq('id', user.id)
                 .single()
             if (!['admin', 'administrator', 'centrala'].includes(callerProfile?.role || '')) {
-                return { success: false, error: 'Insufficient permissions' }
+                return { success: false, error: 'Niewystarczające uprawnienia' }
             }
             userId = targetUserId
         }

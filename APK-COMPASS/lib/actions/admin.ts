@@ -68,7 +68,7 @@ export async function analyzeGap(projectId: string) {
 
     } catch (error) {
         console.error('Gap Analysis Error:', error)
-        return { error: 'Failed to analyze gap' }
+        return { error: 'Nie udało się przeanalizować luki kompetencyjnej' }
     }
 }
 

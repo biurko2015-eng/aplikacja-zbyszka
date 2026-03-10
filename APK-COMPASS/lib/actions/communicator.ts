@@ -35,7 +35,7 @@ export async function getConversations(): Promise<{ data: Conversation[], error:
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
-    if (!user) return { data: [], error: 'Unauthorized' }
+    if (!user) return { data: [], error: 'Brak autoryzacji' }
 
     // 1. Get conversations where user is a participant
     const { data: conversations, error } = await supabase
@@ -55,7 +55,7 @@ export async function getConversations(): Promise<{ data: Conversation[], error:
 
     if (error) {
         console.error('Error fetching conversations:', error)
-        return { data: [], error: 'Failed to fetch conversations' }
+        return { data: [], error: 'Nie udało się pobrać rozmów' }
     }
 
     // 2. Hydrate with participants (for Direct) and last message
@@ -123,15 +123,15 @@ export async function getConversations(): Promise<{ data: Conversation[], error:
 export async function getOrCreateDirectConversation(targetUserId: string): Promise<{ id: string | null, error: string | null }> {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { id: null, error: 'Unauthorized' }
+    if (!user) return { id: null, error: 'Brak autoryzacji' }
 
     const { data: myProfile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
     const { data: targetProfile } = await supabase.from('profiles').select('role').eq('id', targetUserId).single()
 
-    if (!myProfile || !targetProfile) return { id: null, error: 'Profile not found' }
+    if (!myProfile || !targetProfile) return { id: null, error: 'Nie znaleziono profilu' }
 
     if (myProfile.role === 'consultant' && targetProfile.role === 'consultant') {
-        return { id: null, error: 'Internal policy: Consultants cannot message each other directly.' }
+        return { id: null, error: 'Polityka wewnętrzna: Konsultanci nie mogą pisać do siebie bezpośrednio.' }
     }
 
     // Attempt to find existing
@@ -182,7 +182,7 @@ export async function getOrCreateDirectConversation(targetUserId: string): Promi
 export async function getMessages(conversationId: string): Promise<{ data: any[], error: string | null }> {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { data: [], error: 'Unauthorized' }
+    if (!user) return { data: [], error: 'Brak autoryzacji' }
 
     const { data: messages, error } = await supabase
         .from('messages')
@@ -220,7 +220,7 @@ export async function sendMessage(
 ): Promise<{ error: string | null }> {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Unauthorized' }
+    if (!user) return { error: 'Brak autoryzacji' }
 
     const { error } = await supabase
         .from('messages')
@@ -234,7 +234,7 @@ export async function sendMessage(
 
     if (error) {
         console.error('Send message error:', error)
-        return { error: 'Failed to send message: ' + error.message }
+        return { error: 'Nie udało się wysłać wiadomości: ' + error.message }
     }
 
     await supabase
@@ -269,10 +269,10 @@ export async function markAsRead(conversationId: string) {
 export async function getAllUsersToMessage(): Promise<{ data: any[], error: string | null }> {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { data: [], error: 'Unauthorized' }
+    if (!user) return { data: [], error: 'Brak autoryzacji' }
 
     const { data: myProfile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-    if (!myProfile) return { data: [], error: 'Profile not found' }
+    if (!myProfile) return { data: [], error: 'Nie znaleziono profilu' }
 
     let queryBuilder = supabase
         .from('profiles')
@@ -302,10 +302,10 @@ export async function getAllUsersToMessage(): Promise<{ data: any[], error: stri
 export async function searchUsersToMessage(query: string): Promise<{ data: any[], error: string | null }> {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { data: [], error: 'Unauthorized' }
+    if (!user) return { data: [], error: 'Brak autoryzacji' }
 
     const { data: myProfile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-    if (!myProfile) return { data: [], error: 'Profile not found' }
+    if (!myProfile) return { data: [], error: 'Nie znaleziono profilu' }
 
     let queryBuilder = supabase
         .from('profiles')
@@ -335,7 +335,7 @@ export async function searchUsersToMessage(query: string): Promise<{ data: any[]
 export async function createBroadcastGroup(name: string, participantIds: string[]): Promise<{ id: string | null, error: string | null }> {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { id: null, error: 'Unauthorized' }
+    if (!user) return { id: null, error: 'Brak autoryzacji' }
 
     const { data: myProfile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
     if (myProfile?.role !== 'admin') {
@@ -365,7 +365,7 @@ export async function sendBroadcastToAll(
 ): Promise<{ error: string | null, recipientCount: number }> {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Unauthorized', recipientCount: 0 }
+    if (!user) return { error: 'Brak autoryzacji', recipientCount: 0 }
 
     // Only admin can send broadcasts
     const { data: myProfile } = await supabase.from('profiles').select('role, full_name').eq('id', user.id).single()

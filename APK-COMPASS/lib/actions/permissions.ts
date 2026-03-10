@@ -32,7 +32,7 @@ function isValidValue(v: unknown): v is PermissionValue {
 async function requireAdmin() {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('Unauthorized')
+    if (!user) throw new Error('Brak autoryzacji')
 
     const { data: profile } = await supabase
         .from('profiles')
@@ -41,7 +41,7 @@ async function requireAdmin() {
         .single()
 
     if (!['administrator', 'admin'].includes(profile?.role || '')) {
-        throw new Error('Admin access required')
+        throw new Error('Wymagany dostęp administratora')
     }
 
     return { supabase, user }

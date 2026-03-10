@@ -12,7 +12,7 @@ export async function uploadAvatar(formData: FormData) {
 
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('Not authenticated')
+    if (!user) throw new Error('Nie jesteś zalogowany')
 
     const fileExt = file.name.split('.').pop()
     const filePath = `profiles/${user.id}-${Date.now()}.${fileExt}`
@@ -41,11 +41,11 @@ export async function uploadAvatar(formData: FormData) {
 
 export async function uploadCV(formData: FormData) {
     const file = formData.get('file') as File
-    if (!file) throw new Error('No file uploaded')
+    if (!file) throw new Error('Nie wybrano pliku')
 
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('Not authenticated')
+    if (!user) throw new Error('Nie jesteś zalogowany')
 
     try {
         // 1. Upload file
@@ -56,7 +56,7 @@ export async function uploadCV(formData: FormData) {
             .from('documents')
             .upload(filePath, file)
 
-        if (uploadError) throw new Error('Failed to upload file')
+        if (uploadError) throw new Error('Nie udało się przesłać pliku')
 
         // 2. Prepare Buffer for Image Extraction
         const arrayBuffer = await file.arrayBuffer()
@@ -119,14 +119,14 @@ export async function uploadCV(formData: FormData) {
 
     } catch (error: any) {
         console.error('CV Upload Error:', error)
-        return { success: false, error: error.message || 'Failed to process CV' }
+        return { success: false, error: error.message || 'Nie udało się przetworzyć CV' }
     }
 }
 
 export async function generateProfileFromCV(manualData?: any) {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('Not authenticated')
+    if (!user) throw new Error('Nie jesteś zalogowany')
 
     try {
         // 1. Get current CV path from profile
@@ -258,7 +258,7 @@ Respond with a valid json object.`
 
     } catch (error: any) {
         console.error('AI Generation Error:', error)
-        return { success: false, error: error.message || 'Failed to generate profile' }
+        return { success: false, error: error.message || 'Nie udało się wygenerować profilu' }
     }
 }
 
@@ -266,11 +266,11 @@ Respond with a valid json object.`
 
 export async function uploadReferralCV(formData: FormData) {
     const file = formData.get('file') as File
-    if (!file) return { success: false, error: 'No file uploaded' }
+    if (!file) return { success: false, error: 'Nie wybrano pliku' }
 
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { success: false, error: 'Not authenticated' }
+    if (!user) return { success: false, error: 'Nie jesteś zalogowany' }
 
     try {
         const fileExt = file.name.split('.').pop()
@@ -282,13 +282,13 @@ export async function uploadReferralCV(formData: FormData) {
 
         if (uploadError) {
             console.error('Referral CV upload error:', uploadError)
-            return { success: false, error: 'Failed to upload file' }
+            return { success: false, error: 'Nie udało się przesłać pliku' }
         }
 
         return { success: true, path: filePath }
     } catch (error: any) {
         console.error('Referral CV Upload Error:', error)
-        return { success: false, error: error.message || 'Failed to upload CV' }
+        return { success: false, error: error.message || 'Nie udało się przesłać CV' }
     }
 }
 
@@ -296,7 +296,7 @@ export async function uploadReferralCV(formData: FormData) {
 
 export async function adminUploadCV(formData: FormData, candidateId: string) {
     const file = formData.get('file') as File
-    if (!file) throw new Error('No file uploaded')
+    if (!file) throw new Error('Nie wybrano pliku')
 
     const supabase = createClient()
     // Verify admin access here if roles are implemented
@@ -311,7 +311,7 @@ export async function adminUploadCV(formData: FormData, candidateId: string) {
             .from('documents')
             .upload(filePath, file)
 
-        if (uploadError) throw new Error('Failed to upload file')
+        if (uploadError) throw new Error('Nie udało się przesłać pliku')
 
         // 2. Prepare Buffer for Image Extraction (Optional but good to have)
         const arrayBuffer = await file.arrayBuffer()
@@ -385,7 +385,7 @@ export async function adminUploadCV(formData: FormData, candidateId: string) {
 
     } catch (error: any) {
         console.error('Admin CV Upload Error:', error)
-        return { success: false, error: error.message || 'Failed to process CV' }
+        return { success: false, error: error.message || 'Nie udało się przetworzyć CV' }
     }
 }
 

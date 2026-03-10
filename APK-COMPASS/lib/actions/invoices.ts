@@ -34,7 +34,7 @@ export interface Invoice {
 export async function getMyInvoices(): Promise<{ data: Invoice[], error: string | null }> {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { data: [], error: 'Unauthorized' }
+    if (!user) return { data: [], error: 'Brak autoryzacji' }
 
     const { data, error } = await supabase
         .from('invoices')
@@ -53,7 +53,7 @@ export async function getMyInvoices(): Promise<{ data: Invoice[], error: string 
 export async function submitInvoice(formData: FormData): Promise<{ success: boolean, error: string | null }> {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { success: false, error: 'Unauthorized' }
+    if (!user) return { success: false, error: 'Brak autoryzacji' }
 
     const invoiceNumber = formData.get('invoiceNumber') as string
     const amount = parseFloat(formData.get('amount') as string)
@@ -148,7 +148,7 @@ export async function getAllInvoices(filters?: {
 }): Promise<{ data: (Invoice & { consultant_name?: string, consultant_email?: string })[], error: string | null }> {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { data: [], error: 'Unauthorized' }
+    if (!user) return { data: [], error: 'Brak autoryzacji' }
 
     // Check admin role
     const { data: profile } = await supabase
@@ -209,7 +209,7 @@ export async function updateInvoiceStatus(
 ): Promise<{ success: boolean, error: string | null }> {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { success: false, error: 'Unauthorized' }
+    if (!user) return { success: false, error: 'Brak autoryzacji' }
 
     const updateData: Record<string, any> = {
         status,

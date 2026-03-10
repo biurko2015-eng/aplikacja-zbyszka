@@ -15,7 +15,7 @@ export default function Error({
 
     return (
         <div className="p-10 text-white bg-red-900/50 border border-red-500 rounded-lg m-4">
-            <h2 className="text-2xl font-bold mb-4">Coś poszło nie tak (Admin Layout Error)!</h2>
+            <h2 className="text-2xl font-bold mb-4">Coś poszło nie tak w panelu administracji!</h2>
             <div className="bg-black/50 p-4 rounded mb-4 font-mono text-sm break-all">
                 {error.message}
             </div>
