@@ -8,7 +8,7 @@ import { LayoutPreferencesProvider } from '@/lib/contexts/LayoutPreferencesConte
 import { AIAssistantPreferencesProvider } from '@/lib/contexts/AIAssistantPreferencesContext'
 import { ThemeProvider } from '@/lib/contexts/ThemeContext'
 import { getPermissions } from '@/lib/actions/permissions'
-import type { PermissionRole } from '@/lib/types/permissions'
+import type { PermissionRole, PermissionsMap, PermissionFeature, PermissionValue } from '@/lib/types/permissions'
 import { isSuperAdmin } from '@/lib/auth/super-admins'
 import nextDynamic from 'next/dynamic'
 
@@ -28,15 +28,16 @@ export default async function ProtectedLayout({
             redirect('/login')
         }
 
-        let profile: { full_name?: string | null; avatar_url?: string | null; role?: string; bio?: string | null } | null = null
-        let permissionsMap: Record<string, Record<string, string>> = {}
+        type ProfileData = { full_name?: string | null; avatar_url?: string | null; role?: string; bio?: string | null }
+        let profile: ProfileData | null = null
+        let permissionsMap: PermissionsMap = {} as PermissionsMap
         try {
             const [profileRes, perms] = await Promise.all([
                 supabase.from('profiles').select('id, full_name, avatar_url, email, bio, role, cv_url, gdpr_consent').eq('id', user.id).single(),
                 getPermissions(),
             ])
-            profile = (profileRes as { data?: typeof profile } | undefined)?.data ?? null
-            permissionsMap = perms ?? {}
+            profile = (profileRes as { data?: ProfileData | null })?.data ?? null
+            permissionsMap = perms ?? {} as PermissionsMap
         } catch {
             const { DEFAULT_PERMISSIONS } = await import('@/lib/types/permissions')
             permissionsMap = DEFAULT_PERMISSIONS
@@ -62,7 +63,7 @@ export default async function ProtectedLayout({
         const userData = {
             ...user,
             full_name: profile?.full_name || (user as { user_metadata?: { full_name?: string } }).user_metadata?.full_name,
-            avatar_url: profile?.avatar_url,
+            avatar_url: profile?.avatar_url ?? undefined,
             email: user.email,
             bio: profile?.bio,
         }

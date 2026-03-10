@@ -99,7 +99,7 @@ function chain(table: string, state: Partial<ChainState> = {}): Record<string, u
     abortSignal: () => chain(table, { ...s }),
     single: () => chain(table, { ...s, single: true }),
     maybeSingle: () => chain(table, { ...s, single: true }),
-    then: (onFulfilled: (v: { data: unknown; error: null }) => unknown, onRejected?: (e: unknown) => unknown) =>
+    then: (onFulfilled: (v: any) => unknown, onRejected?: (e: unknown) => unknown) =>
       run().then(onFulfilled, onRejected),
     catch: (onRejected: (e: unknown) => unknown) => run().catch(onRejected),
   }
@@ -123,7 +123,7 @@ function chainLegacy(single = false) {
   })
   o.single = () => chainLegacy(true)
   o.maybeSingle = () => chainLegacy(true)
-  o.then = (onFulfilled: (v: typeof emptyList) => unknown, onRejected?: (e: unknown) => unknown) =>
+  o.then = (onFulfilled: (v: any) => unknown, onRejected?: (e: unknown) => unknown) =>
     thenable.then(onFulfilled, onRejected)
   o.catch = (onRejected: (e: unknown) => unknown) => thenable.catch(onRejected)
   return o as { then: Promise<typeof emptyList>['then']; catch: Promise<typeof emptyList>['catch']; single: () => typeof o; maybeSingle: () => typeof o; [k: string]: unknown }

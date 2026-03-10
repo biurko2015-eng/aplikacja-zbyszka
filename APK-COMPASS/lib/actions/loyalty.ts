@@ -392,14 +392,14 @@ export async function getLoyaltyBreakdown(
         }
 
         // Add any remaining custom source types not in rules
-        for (const [code, agg] of sourceAgg) {
+        for (const [code, agg] of Array.from(sourceAgg)) {
             const cat = 'Inne'
             if (!categoryMap.has(cat)) {
                 categoryMap.set(cat, { category: cat, totalPoints: 0, percentage: 0, items: [] })
             }
             categoryMap.get(cat)!.items.push({
                 sourceType: code,
-                label: code.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+                label: code.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()),
                 description: null,
                 totalPoints: agg.points,
                 count: agg.count,

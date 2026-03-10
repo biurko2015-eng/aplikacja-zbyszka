@@ -370,7 +370,7 @@ function formatMatchedRatesTable(rates: MatchedRateDetail[]): string {
     }
 
     const lines: string[] = []
-    for (const [source, entries] of grouped) {
+    for (const [source, entries] of Array.from(grouped)) {
         lines.push(`\n📊 ${source}:`)
         for (const e of entries) {
             const seniority = e.seniority ? ` [${SENIORITY_PL[e.seniority] || e.seniority}]` : ''

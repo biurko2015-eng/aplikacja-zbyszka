@@ -4,7 +4,7 @@ import { ProtectedPage } from '@/components/common/ProtectedPage'
 import { redirect } from 'next/navigation'
 
 export default async function AdminReferralsPage() {
-    let referrals
+    let referrals: Awaited<ReturnType<typeof getAdminReferrals>> = []
     try {
         referrals = await getAdminReferrals()
     } catch (e) {

@@ -1,4 +1,4 @@
-// @ts-expect-error pdf2json has no types
+// @ts-ignore pdf2json has no types
 import PDFParser from 'pdf2json'
 import mammoth from 'mammoth'
 

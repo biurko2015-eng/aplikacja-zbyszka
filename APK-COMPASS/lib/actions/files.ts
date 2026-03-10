@@ -111,7 +111,7 @@ export async function uploadCV(formData: FormData) {
         const { syncProfileToCandidate } = await import('@/lib/actions/matching')
         await syncProfileToCandidate(user.id, {
             cv_url: filePath,
-            avatar_url: extractedAvatarUrl
+            avatar_url: extractedAvatarUrl ?? undefined
         })
 
         revalidatePath('/profile')

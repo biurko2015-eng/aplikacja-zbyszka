@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { createNotification } from "@/lib/actions/notifications"
+import type { NotificationType, NotificationPriority } from "@/lib/types"
 import { createClient } from "@/lib/supabase/client"
 import { toast } from "sonner"
 import { toastSuccess } from "@/lib/toast-success"
@@ -30,14 +31,22 @@ export default function TestNotificationsPage() {
 
         setLoading(true)
         try {
-            const params = {
+            const params: {
+                userId: string
+                type: NotificationType
+                titlePl: string
+                titleEn: string
+                bodyPl: string
+                bodyEn: string
+                priority: NotificationPriority
+            } = {
                 userId,
-                type: 'system_announcement' as const,
+                type: 'system_announcement',
                 titlePl: 'Testowe powiadomienie',
                 titleEn: 'Test notification',
                 bodyPl: 'To jest testowe powiadomienie z panelu administracyjnego.',
                 bodyEn: 'This is a test notification from admin panel.',
-                priority: 'normal' as const
+                priority: 'normal'
             }
 
             switch (type) {

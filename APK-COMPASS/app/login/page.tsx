@@ -91,13 +91,13 @@ export default function LoginPage() {
         startLoadingSteps()
 
         if (isSignUp) {
-            const result = await signup(formData)
+            const signupResult = await signup(formData)
             stopLoadingSteps()
-            if (result?.error) {
-                setError(result.error)
+            if (signupResult?.error) {
+                setError(signupResult.error)
                 triggerShake()
-            } else if (result?.success) {
-                setSuccess(result.success)
+            } else if (signupResult?.success) {
+                setSuccess(signupResult.success)
             }
         } else {
             const result = await login(formData)
