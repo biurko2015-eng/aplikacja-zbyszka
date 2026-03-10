@@ -29,10 +29,8 @@ export async function middleware(request: NextRequest) {
         }
     )
 
-    const emergencyUser = request.cookies.get('emergency_auth_user')?.value
-    if (emergencyUser === 'zbigniew.twardowski@b2bnetwork.pl') {
-        return response
-    }
+    // SECURITY: Emergency bypass via 'emergency_auth_user' cookie removed (was a security risk in production).
+    // All users must authenticate through Supabase auth.
 
     const { data: { user } } = await supabase.auth.getUser()
 
