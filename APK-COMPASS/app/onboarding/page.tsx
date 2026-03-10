@@ -50,7 +50,7 @@ export default function OnboardingPage() {
             const results = await searchCandidatesByName(query)
             setSearchResults(results)
         } catch {
-            toast.error('Blad wyszukiwania')
+            toast.error('Błąd wyszukiwania')
         } finally {
             setSearching(false)
         }
@@ -70,10 +70,10 @@ export default function OnboardingPage() {
                 toastSuccess('CV przypisane do Twojego konta!')
                 setStep('bio')
             } else {
-                toast.error(result.error || 'Nie udalo sie przypisac CV')
+                toast.error(result.error || 'Nie udało się przypisać CV')
             }
         } catch {
-            toast.error('Wystapil blad')
+            toast.error('Wystąpił błąd')
         } finally {
             setLoading(false)
         }
@@ -94,10 +94,10 @@ export default function OnboardingPage() {
                 toastSuccess('CV wgrane i przetworzone!')
                 setStep('bio')
             } else {
-                toast.error('Blad uploadu: ' + (uploadRes.error || ''))
+                toast.error('Błąd uploadu: ' + (uploadRes.error || ''))
             }
         } catch (e: unknown) {
-            toast.error('Blad: ' + (e instanceof Error ? e.message : 'Nieznany'))
+            toast.error('Błąd: ' + (e instanceof Error ? e.message : 'Nieznany'))
         } finally {
             setLoading(false)
         }
@@ -115,17 +115,17 @@ export default function OnboardingPage() {
                 gdpr_consent: true,
             })
             if (result.success === false) {
-                toast.error(result.error || 'Blad zapisu')
+                toast.error(result.error || 'Błąd zapisu')
                 return
             }
 
             await completeOnboarding()
-            toastSuccess('Profil utworzony pomyslnie!')
+            toastSuccess('Profil utworzony pomyślnie!')
             setStep('done')
             router.push('/home')
             router.refresh()
         } catch (e: unknown) {
-            toast.error('Blad: ' + (e instanceof Error ? e.message : 'Nieznany'))
+            toast.error('Błąd: ' + (e instanceof Error ? e.message : 'Nieznany'))
         } finally {
             setLoading(false)
         }
@@ -301,20 +301,20 @@ export default function OnboardingPage() {
                         <div className="space-y-6">
                             {claimed && (
                                 <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20 text-green-400 text-sm">
-                                    CV zostalo przypisane do Twojego konta.
+                                    CV zostało przypisane do Twojego konta.
                                 </div>
                             )}
 
                             <div className="space-y-2">
-                                <Label>Krotkie Bio / O mnie</Label>
+                                <Label>Krótkie Bio / O mnie</Label>
                                 <Textarea
-                                    placeholder="Napisz kilka slow o swoim doswiadczeniu..."
+                                    placeholder="Napisz kilka słów o swoim doświadczeniu..."
                                     value={bio}
                                     onChange={(e) => setBio(e.target.value)}
                                     className="bg-white/5 min-h-[100px]"
                                 />
                                 <p className="text-xs text-muted-foreground">
-                                    {claimed ? 'Opcjonalne -- bio z CV zostalo juz zaladowane.' : 'Min. 10 znakow.'}
+                                    {claimed ? 'Opcjonalne -- bio z CV zostało już załadowane.' : 'Min. 10 znaków.'}
                                 </p>
                             </div>
 

@@ -51,13 +51,13 @@ export function WelcomePanel({
 
         // Validate file type
         if (!file.type.startsWith('image/')) {
-            toast.error(locale === 'pl' ? 'Wybierz plik graficzny (JPG, PNG, GIF)' : 'Please select an image file (JPG, PNG, GIF)')
+            toast.error(locale === 'pl' ? 'Wybierz plik graficzny (JPG, PNG, GIF)' : 'Wybierz plik graficzny (JPG, PNG, GIF)')
             return
         }
 
         // Validate file size (max 5MB)
         if (file.size > 5 * 1024 * 1024) {
-            toast.error(locale === 'pl' ? 'Zdjęcie jest za duże. Maksymalny rozmiar to 5 MB.' : 'Image is too large. Maximum size is 5 MB.')
+            toast.error(locale === 'pl' ? 'Zdjęcie jest za duże. Maksymalny rozmiar to 5 MB.' : 'Zdjęcie jest za duże. Maksymalny rozmiar to 5 MB.')
             return
         }
 
@@ -72,11 +72,11 @@ export function WelcomePanel({
                 // Show local preview immediately
                 const objectUrl = URL.createObjectURL(file)
                 setCurrentAvatarUrl(objectUrl)
-                toastSuccess(locale === 'pl' ? 'Zdjęcie profilowe zostało zaktualizowane!' : 'Profile photo updated!')
+                toastSuccess(locale === 'pl' ? 'Zdjęcie profilowe zostało zaktualizowane!' : 'Zdjęcie profilowe zostało zaktualizowane!')
             }
         } catch (error) {
             console.error('Avatar upload error:', error)
-            toast.error(locale === 'pl' ? 'Nie udało się wgrać zdjęcia. Spróbuj ponownie.' : 'Failed to upload photo. Please try again.')
+            toast.error(locale === 'pl' ? 'Nie udało się wgrać zdjęcia. Spróbuj ponownie.' : 'Nie udało się wgrać zdjęcia. Spróbuj ponownie.')
         } finally {
             setAvatarLoading(false)
             // Reset input so same file can be re-selected
@@ -86,9 +86,9 @@ export function WelcomePanel({
 
     const getGreeting = () => {
         const hour = new Date().getHours()
-        if (hour < 12) return locale === 'pl' ? "Dzień dobry" : "Good morning"
-        if (hour < 18) return locale === 'pl' ? "Dzień dobry" : "Good afternoon"
-        return locale === 'pl' ? "Dobry wieczór" : "Good evening"
+        if (hour < 12) return locale === 'pl' ? "Dzień dobry" : "Dzień dobry"
+        if (hour < 18) return locale === 'pl' ? "Dzień dobry" : "Dzień dobry"
+        return locale === 'pl' ? "Dobry wieczór" : "Dobry wieczór"
     }
 
     const initials = fullName

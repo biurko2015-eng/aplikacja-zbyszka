@@ -53,7 +53,7 @@ export async function getUnifiedDashboardData(roleHint?: string) {
         const supabase = createClient()
         const { data: { user }, error: authError } = await supabase.auth.getUser()
         if (authError || !user) {
-            return { success: false, error: 'Not authenticated' }
+            return { success: false, error: 'Nie jesteś zalogowany' }
         }
 
         const { data: profile } = await supabase
@@ -147,6 +147,6 @@ export async function getUnifiedDashboardData(roleHint?: string) {
             isSuperAdmin: isSuperAdminUser,
         }
     } catch (_e) {
-        return { success: false, error: 'Load failed' }
+        return { success: false, error: 'Nie udało się załadować danych' }
     }
 }

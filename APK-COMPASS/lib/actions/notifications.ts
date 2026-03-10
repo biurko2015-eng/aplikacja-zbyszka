@@ -17,7 +17,7 @@ export async function getRecentNotifications(
         const { data: { user } } = await supabase.auth.getUser()
 
         if (!user) {
-            return { success: false, error: 'Not authenticated' }
+            return { success: false, error: 'Nie jesteś zalogowany' }
         }
 
         let query = supabase
@@ -41,7 +41,7 @@ export async function getRecentNotifications(
         return { success: true, notifications: data as Notification[] }
     } catch (error: any) {
         console.error('Notifications fetch error:', error)
-        return { success: false, error: error.message || 'Failed to fetch notifications' }
+        return { success: false, error: error.message || 'Nie udało się pobrać powiadomień' }
     }
 }
 
@@ -54,7 +54,7 @@ export async function getUnreadNotificationCount(): Promise<{ success: boolean; 
         const { data: { user } } = await supabase.auth.getUser()
 
         if (!user) {
-            return { success: false, error: 'Not authenticated' }
+            return { success: false, error: 'Nie jesteś zalogowany' }
         }
 
         const { count, error } = await supabase
@@ -71,7 +71,7 @@ export async function getUnreadNotificationCount(): Promise<{ success: boolean; 
         return { success: true, count: count || 0 }
     } catch (error: any) {
         console.error('Notification count error:', error)
-        return { success: false, error: error.message || 'Failed to count notifications' }
+        return { success: false, error: error.message || 'Nie udało się policzyć powiadomień' }
     }
 }
 
@@ -84,7 +84,7 @@ export async function markNotificationAsRead(notificationId: string): Promise<{ 
         const { data: { user } } = await supabase.auth.getUser()
 
         if (!user) {
-            return { success: false, error: 'Not authenticated' }
+            return { success: false, error: 'Nie jesteś zalogowany' }
         }
 
         const { error } = await supabase
@@ -104,7 +104,7 @@ export async function markNotificationAsRead(notificationId: string): Promise<{ 
         return { success: true }
     } catch (error: any) {
         console.error('Mark as read error:', error)
-        return { success: false, error: error.message || 'Failed to mark notification as read' }
+        return { success: false, error: error.message || 'Nie udało się oznaczyć powiadomienia jako przeczytane' }
     }
 }
 
@@ -117,7 +117,7 @@ export async function markAllNotificationsAsRead(): Promise<{ success: boolean; 
         const { data: { user } } = await supabase.auth.getUser()
 
         if (!user) {
-            return { success: false, error: 'Not authenticated' }
+            return { success: false, error: 'Nie jesteś zalogowany' }
         }
 
         const { error } = await supabase
@@ -137,7 +137,7 @@ export async function markAllNotificationsAsRead(): Promise<{ success: boolean; 
         return { success: true }
     } catch (error: any) {
         console.error('Mark all as read error:', error)
-        return { success: false, error: error.message || 'Failed to mark all notifications as read' }
+        return { success: false, error: error.message || 'Nie udało się oznaczyć wszystkich jako przeczytane' }
     }
 }
 
@@ -150,7 +150,7 @@ export async function deleteNotification(notificationId: string): Promise<{ succ
         const { data: { user } } = await supabase.auth.getUser()
 
         if (!user) {
-            return { success: false, error: 'Not authenticated' }
+            return { success: false, error: 'Nie jesteś zalogowany' }
         }
 
         const { error } = await supabase
@@ -167,7 +167,7 @@ export async function deleteNotification(notificationId: string): Promise<{ succ
         return { success: true }
     } catch (error: any) {
         console.error('Delete notification error:', error)
-        return { success: false, error: error.message || 'Failed to delete notification' }
+        return { success: false, error: error.message || 'Nie udało się usunąć powiadomienia' }
     }
 }
 
@@ -190,7 +190,7 @@ export async function createNotification(params: {
         const { data: { user } } = await supabase.auth.getUser()
 
         if (!user) {
-            return { success: false, error: 'Not authenticated' }
+            return { success: false, error: 'Nie jesteś zalogowany' }
         }
 
         // Check if user is admin
@@ -201,7 +201,7 @@ export async function createNotification(params: {
             .single()
 
         if (!['admin', 'administrator'].includes(profile?.role || '') && params.userId !== user.id) {
-            return { success: false, error: 'Unauthorized: Only admins can create notifications for other users' }
+            return { success: false, error: 'Brak uprawnień: Tylko administratorzy mogą tworzyć powiadomienia dla innych użytkowników' }
         }
 
         const { data, error } = await supabase
@@ -224,6 +224,6 @@ export async function createNotification(params: {
         return { success: true, notificationId: data as string }
     } catch (error: any) {
         console.error('Create notification error:', error)
-        return { success: false, error: error.message || 'Failed to create notification' }
+        return { success: false, error: error.message || 'Nie udało się utworzyć powiadomienia' }
     }
 }

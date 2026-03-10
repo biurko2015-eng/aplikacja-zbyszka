@@ -11,7 +11,7 @@ export async function getDashboardStats() {
         const { data: { user } } = await supabase.auth.getUser()
 
         if (!user) {
-            return { success: false, error: 'Not authenticated' }
+            return { success: false, error: 'Nie jesteś zalogowany' }
         }
 
         // Get profile data
@@ -79,7 +79,7 @@ export async function getDashboardStats() {
         }
     } catch (error: unknown) {
         console.error('Dashboard stats error:', error)
-        return { success: false, error: error instanceof Error ? error.message : 'Failed to fetch dashboard stats' }
+        return { success: false, error: error instanceof Error ? error.message : 'Nie udało się pobrać statystyk' }
     }
 }
 
@@ -92,7 +92,7 @@ export async function getContractStatus() {
         const { data: { user } } = await supabase.auth.getUser()
 
         if (!user) {
-            return { success: false, error: 'Not authenticated' }
+            return { success: false, error: 'Nie jesteś zalogowany' }
         }
 
         // Get active contract with health score
@@ -128,7 +128,7 @@ export async function getContractStatus() {
         }
     } catch (error: unknown) {
         console.error('Contract status error:', error)
-        return { success: false, error: error instanceof Error ? error.message : 'Failed to fetch contract status' }
+        return { success: false, error: error instanceof Error ? error.message : 'Nie udało się pobrać statusu kontraktu' }
     }
 }
 
@@ -141,7 +141,7 @@ export async function getQuickActions() {
         const { data: { user } } = await supabase.auth.getUser()
 
         if (!user) {
-            return { success: false, error: 'Not authenticated' }
+            return { success: false, error: 'Nie jesteś zalogowany' }
         }
 
         // Get profile to check CV status
@@ -213,6 +213,6 @@ export async function getQuickActions() {
         }
     } catch (error: unknown) {
         console.error('Quick actions error:', error)
-        return { success: false, error: error instanceof Error ? error.message : 'Failed to fetch quick actions' }
+        return { success: false, error: error instanceof Error ? error.message : 'Nie udało się pobrać szybkich akcji' }
     }
 }
