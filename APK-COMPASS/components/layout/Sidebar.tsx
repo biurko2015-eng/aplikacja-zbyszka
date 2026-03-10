@@ -17,6 +17,7 @@ import {
     Rocket,
     MessageCircle,
     TrendingUp,
+    KanbanSquare,
 } from 'lucide-react'
 import { Logo } from '@/components/common/Logo'
 import { useTheme } from '@/lib/contexts/ThemeContext'
@@ -78,6 +79,7 @@ export function Sidebar({ role, user, permissions, forMobile = false }: SidebarP
         { name: t('referrals'), href: '/admin/referrals', icon: Users },
         { name: 'Import', href: '/admin/import', icon: FileText },
         { name: 'Stawki', href: '/admin/rates', icon: TrendingUp },
+        { name: 'Zadania', href: '/admin/tasks', icon: KanbanSquare },
         { name: 'Program lojalnościowy', href: '/loyalty', icon: Trophy },
         { name: 'Strefa Rozwoju', href: '/development', icon: Rocket },
         { name: t('settings'), href: '/admin/settings', icon: Settings },
