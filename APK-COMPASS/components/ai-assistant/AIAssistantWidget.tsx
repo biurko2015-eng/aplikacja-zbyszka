@@ -161,7 +161,7 @@ export function AIAssistantWidget() {
                 isOpen ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none h-0 w-0 overflow-hidden"
             )}>
                 <Card className={cn(
-                    "w-[380px] h-[520px] shadow-2xl flex flex-col overflow-hidden bg-background",
+                    "w-[calc(100vw-2rem)] sm:w-[380px] h-[520px] shadow-2xl flex flex-col overflow-hidden bg-background",
                     glowConfig.borderClass
                 )}>
                     {/* Header */}

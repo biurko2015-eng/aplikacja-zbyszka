@@ -160,7 +160,7 @@ export function ReferralSettingsEditor() {
             )}
 
             <Tabs defaultValue="rules" className="w-full">
-                <TabsList className="grid w-full grid-cols-3 lg:w-[500px]">
+                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:w-[500px]">
                     <TabsTrigger value="rules">Regulamin</TabsTrigger>
                     <TabsTrigger value="tiers">Tabela Bonusów</TabsTrigger>
                     <TabsTrigger value="actions">Zasady i Nagrody</TabsTrigger>
@@ -240,7 +240,7 @@ export function ReferralSettingsEditor() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-6 space-y-4">
-                            <div className="rounded-lg border border-white/10 overflow-hidden">
+                            <div className="rounded-lg border border-white/10 overflow-x-auto">
                                 <table className="w-full text-sm">
                                     <thead>
                                         <tr className="bg-white/5 text-xs uppercase tracking-wider text-muted-foreground">

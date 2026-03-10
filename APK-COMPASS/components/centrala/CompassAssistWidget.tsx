@@ -85,7 +85,7 @@ export function CompassAssistWidget({ profileId }: CompassAssistWidgetProps) {
         <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-4">
             {/* Chat Window */}
             {isOpen && (
-                <Card className="w-[380px] h-[550px] shadow-2xl border-white/10 bg-[#1a1a2e] flex flex-col animate-in slide-in-from-bottom-4 duration-300 overflow-hidden">
+                <Card className="w-[calc(100vw-2rem)] sm:w-[380px] h-[550px] shadow-2xl border-white/10 bg-[#1a1a2e] flex flex-col animate-in slide-in-from-bottom-4 duration-300 overflow-hidden">
                     <CardHeader className="bg-burgundy p-4 shrink-0">
                         <div className="flex items-center justify-between">
                             <CardTitle className="text-white flex items-center gap-2 text-base">

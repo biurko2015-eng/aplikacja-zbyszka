@@ -94,7 +94,7 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
                 </p>
             </div>
             <div className="flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0">
-                <aside className="-mx-4 lg:w-1/5">
+                <aside className="-mx-4 lg:w-1/5 overflow-x-auto">
                     <nav className="flex flex-col space-y-4">
                         {settingsGroups.map((group) => {
                             const visibleItems = group.items.filter(item =>
@@ -106,7 +106,7 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
                                     <p className="px-3 mb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">
                                         {group.label}
                                     </p>
-                                    <div className="flex space-x-2 lg:flex-col lg:space-x-0 lg:space-y-1">
+                                    <div className="flex space-x-2 overflow-x-auto lg:flex-col lg:space-x-0 lg:space-y-1">
                                         {visibleItems.map((item) => (
                                             <Link
                                                 key={item.href}
