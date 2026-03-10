@@ -33,29 +33,70 @@ const tierConfig: Record<string, { label: string; color: string; bg: string }> =
     'platinum': { label: 'Platinum', color: 'text-foreground', bg: 'bg-foreground/20 border-foreground/30' },
 }
 
-type FilterType = 'all' | 'on_project' | 'bench' | 'recruitment'
+type StatusFilter = 'all' | 'on_project' | 'bench' | 'new'
+type TierFilter = 'all' | 'bronze' | 'silver' | 'gold' | 'platinum'
+type BenchFilter = 'all' | 'lt14' | '14to30' | 'gt30'
+type SortField = 'name' | 'bench_days' | 'loyalty_points' | 'created_at'
+
+function FilterBadge({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+    return (
+        <button
+            onClick={onClick}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
+                active
+                    ? 'bg-primary/20 text-primary border-primary/30'
+                    : 'bg-card/80 text-muted-foreground border-white/10 hover:bg-white/5'
+            }`}
+        >
+            {children}
+        </button>
+    )
+}
 
 export function ConsultantAnalysisTab({ consultants }: ConsultantAnalysisTabProps) {
-    const [filter, setFilter] = useState<FilterType>('all')
+    const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+    const [tierFilter, setTierFilter] = useState<TierFilter>('all')
+    const [benchFilter, setBenchFilter] = useState<BenchFilter>('all')
+    const [sortField, setSortField] = useState<SortField>('name')
     const [searchQuery, setSearchQuery] = useState('')
     const [selectedConsultant, setSelectedConsultant] = useState<ConsultantAnalysis | null>(null)
+
+    const isNewConsultant = (c: ConsultantAnalysis) => {
+        if (!c.created_at) return false
+        const created = new Date(c.created_at)
+        const thirtyDaysAgo = new Date()
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+        return created >= thirtyDaysAgo
+    }
 
     const counts = useMemo(() => ({
         all: consultants.length,
         on_project: consultants.filter(c => c.current_status === 'active' || c.current_status === 'on_project').length,
         bench: consultants.filter(c => c.current_status === 'bench' || c.current_status === 'available' || !c.current_status).length,
-        recruitment: consultants.filter(c => c.current_status === 'recruitment').length,
+        new: consultants.filter(isNewConsultant).length,
     }), [consultants])
 
     const filtered = useMemo(() => {
         let list = [...consultants]
 
-        if (filter === 'on_project') {
+        if (statusFilter === 'on_project') {
             list = list.filter(c => c.current_status === 'active' || c.current_status === 'on_project')
-        } else if (filter === 'bench') {
+        } else if (statusFilter === 'bench') {
             list = list.filter(c => c.current_status === 'bench' || c.current_status === 'available' || !c.current_status)
-        } else if (filter === 'recruitment') {
-            list = list.filter(c => c.current_status === 'recruitment')
+        } else if (statusFilter === 'new') {
+            list = list.filter(isNewConsultant)
+        }
+
+        if (tierFilter !== 'all') {
+            list = list.filter(c => c.loyalty_tier.toLowerCase() === tierFilter)
+        }
+
+        if (benchFilter === 'lt14') {
+            list = list.filter(c => c.bench_days > 0 && c.bench_days < 14)
+        } else if (benchFilter === '14to30') {
+            list = list.filter(c => c.bench_days >= 14 && c.bench_days <= 30)
+        } else if (benchFilter === 'gt30') {
+            list = list.filter(c => c.bench_days > 30)
         }
 
         if (searchQuery.trim()) {
@@ -69,42 +110,138 @@ export function ConsultantAnalysisTab({ consultants }: ConsultantAnalysisTabProp
             )
         }
 
-        return list
-    }, [consultants, filter, searchQuery])
+        list.sort((a, b) => {
+            switch (sortField) {
+                case 'name':
+                    return a.full_name.localeCompare(b.full_name, 'pl')
+                case 'bench_days':
+                    return b.bench_days - a.bench_days
+                case 'loyalty_points':
+                    return (b.loyalty_points ?? 0) - (a.loyalty_points ?? 0)
+                case 'created_at':
+                    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+                default:
+                    return 0
+            }
+        })
 
-    const filters: { id: FilterType; label: string; count: number; color: string }[] = [
-        { id: 'all', label: 'Wszyscy', count: counts.all, color: 'text-white' },
-        { id: 'on_project', label: 'Na projekcie', count: counts.on_project, color: 'text-primary' },
-        { id: 'bench', label: 'Bench', count: counts.bench, color: 'text-amber-400' },
-        { id: 'recruitment', label: 'Rekrutacja', count: counts.recruitment, color: 'text-foreground' },
+        return list
+    }, [consultants, statusFilter, tierFilter, benchFilter, sortField, searchQuery])
+
+    const hasActiveFilters = statusFilter !== 'all' || tierFilter !== 'all' || benchFilter !== 'all' || searchQuery.trim() !== ''
+
+    const clearAllFilters = () => {
+        setStatusFilter('all')
+        setTierFilter('all')
+        setBenchFilter('all')
+        setSearchQuery('')
+        setSortField('name')
+    }
+
+    const statusFilters: { id: StatusFilter; label: string; count: number }[] = [
+        { id: 'all', label: 'Wszystkie', count: counts.all },
+        { id: 'on_project', label: 'Na projekcie', count: counts.on_project },
+        { id: 'bench', label: 'Na benchu', count: counts.bench },
+        { id: 'new', label: 'Nowi', count: counts.new },
+    ]
+
+    const tierFilters: { id: TierFilter; label: string }[] = [
+        { id: 'all', label: 'Wszystkie' },
+        { id: 'bronze', label: 'Bronze' },
+        { id: 'silver', label: 'Silver' },
+        { id: 'gold', label: 'Gold' },
+        { id: 'platinum', label: 'Platinum' },
+    ]
+
+    const benchOptions: { id: BenchFilter; label: string }[] = [
+        { id: 'all', label: 'Wszystkie' },
+        { id: 'lt14', label: '< 14 dni' },
+        { id: '14to30', label: '14-30 dni' },
+        { id: 'gt30', label: '> 30 dni' },
+    ]
+
+    const sortOptions: { id: SortField; label: string }[] = [
+        { id: 'name', label: 'Nazwa' },
+        { id: 'bench_days', label: 'Bench dni' },
+        { id: 'loyalty_points', label: 'Punkty lojalnościowe' },
+        { id: 'created_at', label: 'Data dołączenia' },
     ]
 
     return (
         <div className="space-y-4">
-            {/* Filters */}
-            <div className="flex flex-wrap items-center gap-2">
-                {filters.map(f => (
-                    <button
-                        key={f.id}
-                        onClick={() => setFilter(f.id)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
-                            filter === f.id
-                                ? 'bg-white/10 border-white/20 text-white'
-                                : 'bg-transparent border-white/5 text-muted-foreground hover:border-white/10 hover:text-white'
-                        }`}
-                    >
-                        <span className={f.color}>{f.label}</span>
-                        <span className="ml-1.5 text-muted-foreground">({f.count})</span>
-                    </button>
-                ))}
-                <div className="ml-auto">
-                    <input
-                        type="text"
-                        placeholder="Szukaj konsultanta..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="px-3 py-1.5 rounded-lg text-xs bg-muted border border-white/10 text-white placeholder:text-muted-foreground focus:outline-none focus:border-burgundy/50 w-48"
-                    />
+            {/* Advanced Filter Bar */}
+            <div className="bg-card/50 rounded-xl p-4 border border-white/5 space-y-4">
+                {/* Row 1: Search + Sort */}
+                <div className="flex flex-wrap items-center gap-3">
+                    <div className="relative flex-1 min-w-[200px] max-w-sm">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">&#128269;</span>
+                        <input
+                            type="text"
+                            placeholder="Szukaj po nazwie lub email..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full bg-transparent border border-white/10 rounded-lg pl-9 pr-4 py-2 text-sm text-white placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 transition-colors"
+                        />
+                    </div>
+
+                    <div className="flex items-center gap-2 ml-auto">
+                        <span className="text-xs text-muted-foreground">Sortuj:</span>
+                        <select
+                            value={sortField}
+                            onChange={(e) => setSortField(e.target.value as SortField)}
+                            className="appearance-none bg-transparent border border-white/10 rounded-lg px-3 py-1.5 pr-7 text-xs text-white cursor-pointer focus:outline-none focus:border-primary/50 transition-colors"
+                        >
+                            {sortOptions.map(o => (
+                                <option key={o.id} value={o.id} className="bg-card text-white">{o.label}</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+
+                {/* Row 2: Status */}
+                <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs text-muted-foreground font-medium w-14 shrink-0">Status:</span>
+                    {statusFilters.map(f => (
+                        <FilterBadge key={f.id} active={statusFilter === f.id} onClick={() => setStatusFilter(f.id)}>
+                            {f.label} <span className="ml-1 opacity-60">({f.count})</span>
+                        </FilterBadge>
+                    ))}
+                </div>
+
+                {/* Row 3: Tier */}
+                <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs text-muted-foreground font-medium w-14 shrink-0">Tier:</span>
+                    {tierFilters.map(f => (
+                        <FilterBadge key={f.id} active={tierFilter === f.id} onClick={() => setTierFilter(f.id)}>
+                            {f.label}
+                        </FilterBadge>
+                    ))}
+                </div>
+
+                {/* Row 4: Bench days */}
+                <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs text-muted-foreground font-medium w-14 shrink-0">Bench:</span>
+                    {benchOptions.map(f => (
+                        <FilterBadge key={f.id} active={benchFilter === f.id} onClick={() => setBenchFilter(f.id)}>
+                            {f.label}
+                        </FilterBadge>
+                    ))}
+                </div>
+
+                {/* Summary row */}
+                <div className="flex items-center justify-between pt-1 border-t border-white/5">
+                    <p className="text-xs text-muted-foreground">
+                        Znaleziono <span className="text-white font-medium">{filtered.length}</span> konsultantów
+                    </p>
+                    {hasActiveFilters && (
+                        <button
+                            onClick={clearAllFilters}
+                            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-white transition-colors"
+                        >
+                            <X className="h-3 w-3" />
+                            Wyczyść filtry
+                        </button>
+                    )}
                 </div>
             </div>
 
