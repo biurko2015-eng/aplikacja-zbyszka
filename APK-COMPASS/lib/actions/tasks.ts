@@ -199,7 +199,7 @@ export async function getBoardTasks(boardId: string) {
             .in('task_id', taskIds)
 
         if (assignments && assignments.length > 0) {
-            const userIds = [...new Set(assignments.map(a => a.user_id))]
+            const userIds = Array.from(new Set(assignments.map(a => a.user_id)))
             const { data: profiles } = await supabase
                 .from('profiles')
                 .select('id, full_name, avatar_url')
@@ -356,7 +356,7 @@ export async function getTaskComments(taskId: string) {
 
     if (error) return { success: false as const, error: error.message }
 
-    const authorIds = [...new Set((data || []).map(c => c.author_id).filter(Boolean))]
+    const authorIds = Array.from(new Set((data || []).map(c => c.author_id).filter(Boolean)))
     let profileMap = new Map<string, any>()
 
     if (authorIds.length > 0) {

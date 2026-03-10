@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { X, Trash2, Calendar, Tag, AlertTriangle, MessageSquare, Clock, Send } from "lucide-react"
+import { X, Trash2, Calendar, Tag, AlertTriangle, MessageSquare, Clock, Send, Plus } from "lucide-react"
 import { getTaskComments, addTaskComment, getTaskActivity } from '@/lib/actions/tasks'
 import type { Task, TaskPriority, TaskComment } from '@/lib/actions/tasks'
 import { toast } from "sonner"
