@@ -9,6 +9,10 @@ import { Upload } from 'lucide-react'
 import { FavoriteProjectsSection } from '@/components/shared/FavoriteProjectsSection'
 import { MyReferralsSection } from '@/components/referrals/MyReferralsSection'
 import { RoleItem } from '@/components/profile/RoleItem'
+import { TechStackSection, TechItem } from '@/components/profile/sections/TechStackSection'
+import { CertificationsSection, Certification } from '@/components/profile/sections/CertificationsSection'
+import { WorkPreferencesSection, WorkPreferences } from '@/components/profile/sections/WorkPreferencesSection'
+import { updateProfileFull } from '@/lib/actions/matching'
 
 interface ProfileTabsLayoutProps {
     // All same props as Grid... (abbreviated for brevity)
@@ -377,6 +381,28 @@ export function ProfileTabsLayout(props: any) {
                             />
                         </CardContent>
                     </Card>
+
+                    <TechStackSection
+                        techStack={initialProfile?.tech_stack || []}
+                        skills={initialProfile?.skills || []}
+                        onSave={async (items: TechItem[]) => {
+                            await updateProfileFull({ tech_stack: items as unknown as Record<string, unknown>[] })
+                        }}
+                    />
+
+                    <CertificationsSection
+                        certifications={initialProfile?.certifications || []}
+                        onSave={async (items: Certification[]) => {
+                            await updateProfileFull({ certifications: items as unknown as Record<string, unknown>[] })
+                        }}
+                    />
+
+                    <WorkPreferencesSection
+                        preferences={initialProfile?.work_preferences || {}}
+                        onSave={async (prefs: WorkPreferences) => {
+                            await updateProfileFull({ work_preferences: prefs as unknown as Record<string, unknown> })
+                        }}
+                    />
                 </div>
             )}
 
