@@ -5,9 +5,10 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Star, X } from "lucide-react"
+import { Star, X, User as UserIcon } from "lucide-react"
 import type { ConsultantAnalysis } from '@/lib/actions/admin-dashboard'
 import { ConsultantLoyaltyPanel } from './ConsultantLoyaltyPanel'
+import { ConsultantProfile360Panel } from './ConsultantProfile360Panel'
 
 interface ConsultantAnalysisTabProps {
     consultants: ConsultantAnalysis[]
@@ -60,6 +61,7 @@ export function ConsultantAnalysisTab({ consultants }: ConsultantAnalysisTabProp
     const [sortField, setSortField] = useState<SortField>('name')
     const [searchQuery, setSearchQuery] = useState('')
     const [selectedConsultant, setSelectedConsultant] = useState<ConsultantAnalysis | null>(null)
+    const [profileConsultant, setProfileConsultant] = useState<ConsultantAnalysis | null>(null)
 
     const isNewConsultant = (c: ConsultantAnalysis) => {
         if (!c.created_at) return false
@@ -330,15 +332,28 @@ export function ConsultantAnalysisTab({ consultants }: ConsultantAnalysisTabProp
                                                 )}
                                             </td>
                                             <td className="px-3 py-3 text-center">
-                                                <Button
-                                                    variant={selectedConsultant?.id === c.id ? "default" : "ghost"}
-                                                    size="sm"
-                                                    className="gap-1 text-xs h-7"
-                                                    onClick={() => setSelectedConsultant(selectedConsultant?.id === c.id ? null : c)}
-                                                >
-                                                    <Star className="h-3 w-3" />
-                                                    {c.loyalty_points ?? 0}
-                                                </Button>
+                                                <div className="flex items-center justify-center gap-1">
+                                                    <Button
+                                                        variant={selectedConsultant?.id === c.id ? "default" : "ghost"}
+                                                        size="sm"
+                                                        className="gap-1 text-xs h-7"
+                                                        onClick={() => setSelectedConsultant(selectedConsultant?.id === c.id ? null : c)}
+                                                    >
+                                                        <Star className="h-3 w-3" />
+                                                        {c.loyalty_points ?? 0}
+                                                    </Button>
+                                                    <Button
+                                                        variant={profileConsultant?.id === c.id ? "default" : "ghost"}
+                                                        size="sm"
+                                                        className="gap-1 text-xs h-7"
+                                                        onClick={() => {
+                                                            setProfileConsultant(profileConsultant?.id === c.id ? null : c)
+                                                            setSelectedConsultant(null)
+                                                        }}
+                                                    >
+                                                        <UserIcon className="h-3 w-3" />
+                                                    </Button>
+                                                </div>
                                             </td>
                                         </tr>
                                     )
@@ -378,6 +393,14 @@ export function ConsultantAnalysisTab({ consultants }: ConsultantAnalysisTabProp
                         />
                     </CardContent>
                 </Card>
+            )}
+
+            {profileConsultant && (
+                <ConsultantProfile360Panel
+                    consultantId={profileConsultant.id}
+                    consultantName={profileConsultant.full_name}
+                    onClose={() => setProfileConsultant(null)}
+                />
             )}
         </div>
     )

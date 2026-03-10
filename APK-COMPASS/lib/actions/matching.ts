@@ -316,6 +316,34 @@ export async function getMyProfile() {
     return profile
 }
 
+export async function getConsultantProfile360(consultantId: string) {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { success: false as const, error: 'Nie jesteś zalogowany' }
+
+    const { data: callerProfile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+    if (!callerProfile || !['admin', 'administrator', 'centrala'].includes(callerProfile.role)) {
+        return { success: false as const, error: 'Brak uprawnień' }
+    }
+
+    const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('id, full_name, email, avatar_url, phone, bio, skills, tech_stack, certifications, work_preferences, admin_notes, current_status, loyalty_tier, loyalty_points, experience_years, created_at')
+        .eq('id', consultantId)
+        .single()
+
+    if (error || !profile) {
+        return { success: false as const, error: 'Nie znaleziono profilu' }
+    }
+
+    return { success: true as const, profile }
+}
+
 export async function searchCandidatesByName(query: string) {
     if (!query || query.trim().length < 2) return []
 

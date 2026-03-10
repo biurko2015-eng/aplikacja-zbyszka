@@ -16,6 +16,7 @@ import { FavoriteProjectsSection } from '@/components/shared/FavoriteProjectsSec
 import { getUserFavoriteProjects } from '@/lib/actions/favorites'
 import { Label } from "@/components/ui/label";
 import { RoleItem } from '@/components/profile/RoleItem'
+import { CandidateProfile360Tab } from '@/components/admin/CandidateProfile360Tab'
 
 interface PageProps {
     params: {
@@ -220,6 +221,9 @@ export default async function CandidateDetailPage({ params, searchParams }: Page
                                 <TabsTrigger value="favorites" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none px-0 text-sm font-medium text-muted-foreground">
                                     Ulubione ({favorites.length})
                                 </TabsTrigger>
+                                <TabsTrigger value="profile360" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:text-foreground data-[state=active]:border-b-2 data-[state=active]:border-foreground rounded-none px-0 text-sm font-medium text-muted-foreground">
+                                    Profil 360°
+                                </TabsTrigger>
                             </TabsList>
                         </div>
 
@@ -269,6 +273,11 @@ export default async function CandidateDetailPage({ params, searchParams }: Page
                                 emptyMessage="Kandydat nie oznaczył projektów jako ulubione."
                                 showRemoveButton={false}
                             />
+                        </TabsContent>
+
+                        {/* PROFILE 360 TAB */}
+                        <TabsContent value="profile360" className="flex-1 m-0 overflow-y-auto p-6 data-[state=inactive]:!hidden">
+                            <CandidateProfile360Tab candidateId={candidate.id} candidateName={candidate.full_name || 'Konsultant'} />
                         </TabsContent>
                     </Tabs>
                 </div>
