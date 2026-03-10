@@ -39,24 +39,35 @@ export function useRealtimeNotifications({
     useEffect(() => {
         if (!enabled || !userId) return
 
-        const supabase = createClient()
+        let channel: ReturnType<ReturnType<typeof createClient>['channel']> | null = null
 
-        const channel = supabase
-            .channel(`notifications:${userId}`)
-            .on(
-                'postgres_changes',
-                {
-                    event: 'INSERT',
-                    schema: 'public',
-                    table: 'notifications',
-                    filter: `user_id=eq.${userId}`,
-                },
-                handleNewNotification
-            )
-            .subscribe()
+        try {
+            const supabase = createClient()
+
+            channel = supabase
+                .channel(`notifications:${userId}`)
+                .on(
+                    'postgres_changes',
+                    {
+                        event: 'INSERT',
+                        schema: 'public',
+                        table: 'notifications',
+                        filter: `user_id=eq.${userId}`,
+                    },
+                    handleNewNotification
+                )
+                .subscribe()
+        } catch (e) {
+            console.warn('[Realtime] Subscription failed, falling back to polling:', e)
+        }
 
         return () => {
-            supabase.removeChannel(channel)
+            if (channel) {
+                try {
+                    const supabase = createClient()
+                    supabase.removeChannel(channel)
+                } catch {}
+            }
         }
     }, [userId, enabled, handleNewNotification])
 }

@@ -33,10 +33,12 @@ export function NotificationBell({ locale = 'pl' }: { locale?: 'pl' | 'en' }) {
 
     // Get current user ID for realtime subscription
     useEffect(() => {
-        const supabase = createClient()
-        supabase.auth.getUser().then(({ data: { user } }) => {
-            if (user) setUserId(user.id)
-        })
+        try {
+            const supabase = createClient()
+            supabase.auth.getUser().then(({ data: { user } }) => {
+                if (user) setUserId(user.id)
+            }).catch(() => {})
+        } catch {}
     }, [])
 
     // Load notifications
