@@ -35,3 +35,12 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .env.test
+
+# testing artifacts
+/test-results/
+/playwright-report/
+/e2e/screenshots/
+
+# duplicate files (macOS)
+*\ 2.tsx
+*\ 2.pdf
