@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Bell } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -20,6 +20,8 @@ import {
 import type { Notification } from '@/lib/types'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { createClient } from '@/lib/supabase/client'
+import { useRealtimeNotifications } from '@/lib/hooks/useRealtimeNotifications'
 
 export function NotificationBell({ locale = 'pl' }: { locale?: 'pl' | 'en' }) {
     const router = useRouter()
@@ -27,40 +29,60 @@ export function NotificationBell({ locale = 'pl' }: { locale?: 'pl' | 'en' }) {
     const [unreadCount, setUnreadCount] = useState(0)
     const [isOpen, setIsOpen] = useState(false)
     const [loading, setLoading] = useState(false)
+    const [userId, setUserId] = useState<string>('')
+
+    // Get current user ID for realtime subscription
+    useEffect(() => {
+        const supabase = createClient()
+        supabase.auth.getUser().then(({ data: { user } }) => {
+            if (user) setUserId(user.id)
+        })
+    }, [])
 
     // Load notifications
-    const loadNotifications = async () => {
+    const loadNotifications = useCallback(async () => {
         setLoading(true)
         const result = await getRecentNotifications(20, false)
         if (result.success && result.notifications) {
             setNotifications(result.notifications)
         }
         setLoading(false)
-    }
+    }, [])
 
     // Load unread count
-    const loadUnreadCount = async () => {
+    const loadUnreadCount = useCallback(async () => {
         const result = await getUnreadNotificationCount()
         if (result.success && result.count !== undefined) {
             setUnreadCount(result.count)
         }
-    }
+    }, [])
 
-    // Initial load
+    // Handle real-time notification: refresh both list and count
+    const handleRealtimeNotification = useCallback(() => {
+        loadNotifications()
+        loadUnreadCount()
+    }, [loadNotifications, loadUnreadCount])
+
+    useRealtimeNotifications({
+        userId,
+        onNewNotification: handleRealtimeNotification,
+        enabled: !!userId,
+    })
+
+    // Initial load + fallback polling (60s instead of 30s since we have realtime)
     useEffect(() => {
         loadNotifications()
         loadUnreadCount()
 
-        // Poll for new notifications every 30 seconds
         const interval = setInterval(() => {
             loadUnreadCount()
             if (isOpen) {
                 loadNotifications()
             }
-        }, 30000)
+        }, 60000)
 
         return () => clearInterval(interval)
-    }, [isOpen])
+    }, [isOpen, loadNotifications, loadUnreadCount])
 
     // Mark as read
     const handleMarkAsRead = async (notificationId: string) => {
