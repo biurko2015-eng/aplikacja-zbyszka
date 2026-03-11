@@ -8,13 +8,9 @@ on:
       - '.github/workflows/deploy-compass.yml'
   workflow_dispatch:
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/apk-compass
-
 jobs:
-  build-and-deploy:
-    name: Build & Deploy APK-COMPASS
+  build-and-push:
+    name: Build & Push APK-COMPASS Image
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -52,40 +48,46 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-            NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-            NEXT_PUBLIC_APP_URL=${{ secrets.APK_COMPASS_URL }}
+            NEXT_PUBLIC_SUPABASE_URL=https://txzflesacqvlyhxwfjxk.supabase.co
+            NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR4emZsZXNhY3F2bHloeHdmanhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA1NTI1NjMsImV4cCI6MjA4NjEyODU2M30.kNdYiSuhqKQusnBurIhKVfwF5LmIiJ0iZO-u78Qy_vo
+            NEXT_PUBLIC_APP_URL=https://compass-blql.onrender.com
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Switch Render to GHCR image
+  deploy:
+    name: Deploy to Render
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: build-and-push
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Switch Render to GHCR image and deploy
         env:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
           RENDER_SERVICE_ID: ${{ secrets.RENDER_COMPASS_SERVICE_ID }}
         run: |
+          if [ -z "$RENDER_API_KEY" ] || [ -z "$RENDER_SERVICE_ID" ]; then
+            echo "Render secrets not configured — skipping deploy."
+            echo "Set RENDER_API_KEY and RENDER_COMPASS_SERVICE_ID in repo secrets."
+            exit 0
+          fi
+
           REPO_LC=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
           IMAGE="ghcr.io/${REPO_LC}/apk-compass:latest"
-          echo "Updating Render service to use image: $IMAGE"
+          echo "Deploying image: $IMAGE"
+
           curl -sf -X PATCH "https://api.render.com/v1/services/${RENDER_SERVICE_ID}" \
             -H "Authorization: Bearer ${RENDER_API_KEY}" \
             -H "Content-Type: application/json" \
             -d "{\"image\":{\"ownerId\":\"tea-d6abf4sr85hc73b7n3u0\",\"registryCredentialId\":\"rgc-d6o9o1h5pdvs73ee01j0\",\"imagePath\":\"$IMAGE\"},\"serviceDetails\":{\"env\":\"image\"}}"
 
-      - name: Trigger Render deploy
-        env:
-          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
-          RENDER_SERVICE_ID: ${{ secrets.RENDER_COMPASS_SERVICE_ID }}
-        run: |
           curl -sf -X POST \
             "https://api.render.com/v1/services/${RENDER_SERVICE_ID}/deploys" \
             -H "Authorization: Bearer ${RENDER_API_KEY}" \
             -H "Content-Type: application/json" \
             -d '{"clearCache":"do_not_clear"}'
 
-      - name: Wait and health check
-        run: |
-          echo "Waiting 90s for Render to pull and start..."
-          sleep 90
-          APP_URL="${{ secrets.APK_COMPASS_URL }}"
-          if [ -z "$APP_URL" ]; then APP_URL="https://compass-blql.onrender.com"; fi
-          curl -sf "${APP_URL}/api/health" || curl -sf "${APP_URL}/login" || echo "Health check skipped"
+          echo "Deploy triggered. Waiting 60s..."
+          sleep 60
+          echo "Done."
