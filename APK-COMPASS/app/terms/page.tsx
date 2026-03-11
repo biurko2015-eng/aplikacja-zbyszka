@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 
+export const dynamic = 'force-dynamic'
 export const metadata = { title: 'Regulamin | ComPass' }
 
 export default async function TermsPage() {

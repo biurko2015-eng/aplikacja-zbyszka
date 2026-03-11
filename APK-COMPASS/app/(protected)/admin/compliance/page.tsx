@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Shield, FileText, Users, ExternalLink } from 'lucide-react'
 
+export const dynamic = 'force-dynamic'
 export const metadata = { title: 'Compliance | ComPass Admin' }
 
 export default async function CompliancePage() {

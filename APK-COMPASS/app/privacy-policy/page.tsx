@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 
+export const dynamic = 'force-dynamic'
 export const metadata = { title: 'Polityka prywatności | ComPass' }
 
 export default async function PrivacyPolicyPage() {
