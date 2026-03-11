@@ -1,14 +1,14 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 
-export const metadata = { title: 'Regulamin | ComPass' }
+export const metadata = { title: 'Centrum Pomocy | ComPass' }
 
-export default async function TermsPage() {
+export default async function HelpPage() {
   const supabase = createClient()
   const { data: doc } = await supabase
     .from('um_legal_documents')
     .select('title, content_html, version, updated_at')
-    .eq('slug', 'terms')
+    .eq('slug', 'help')
     .eq('is_active', true)
     .maybeSingle()
 
@@ -37,9 +37,9 @@ export default async function TermsPage() {
         </>
       ) : (
         <>
-          <h1 className="text-2xl font-bold mb-4">Terms of Service / Regulamin</h1>
+          <h1 className="text-2xl font-bold mb-4">Centrum Pomocy</h1>
           <p className="text-muted-foreground mb-6">
-            Strona w przygotowaniu. Regulamin korzystania z usługi ComPass zostanie udostępniony wkrótce.
+            Strona w przygotowaniu. Treść centrum pomocy zostanie udostępniona wkrótce.
           </p>
         </>
       )}
