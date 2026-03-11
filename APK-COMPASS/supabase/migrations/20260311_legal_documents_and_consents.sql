@@ -102,7 +102,7 @@ INSERT INTO um_legal_documents (slug, title, content_html, version, is_active, r
 
 -- PUBLIC documents (visible on login page footer)
 ('privacy-policy', 'Polityka Prywatności (RODO)', '<h1>Polityka Prywatności</h1>
-<p><strong>Administrator danych:</strong> B2B Network S.A., ul. Prosta 20, 00-850 Warszawa, KRS: 0001088816</p>
+<p><strong>Administrator danych:</strong> B2B.net S.A., Aleje Jerozolimskie 180, 02-485 Warszawa, KRS: 0000387063</p>
 <h2>1. Cele przetwarzania danych</h2>
 <p>Dane osobowe przetwarzamy w celu:</p>
 <ul>
@@ -126,7 +126,7 @@ INSERT INTO um_legal_documents (slug, title, content_html, version, is_active, r
 ('terms', 'Regulamin Platformy ComPass', '<h1>Regulamin Platformy ComPass</h1>
 <p><strong>Wersja 1.0</strong> | Obowiązuje od: 11 marca 2026 r.</p>
 <h2>§1. Definicje</h2>
-<p><strong>Platforma</strong> — aplikacja webowa ComPass dostępna pod adresem compass.b2bnetwork.pl. <strong>Operator</strong> — B2B Network S.A. <strong>Konsultant</strong> — osoba fizyczna prowadząca działalność gospodarczą, współpracująca z Operatorem na podstawie umowy B2B. <strong>Centrala</strong> — pracownik/współpracownik Operatora z uprawnieniami zarządzania. <strong>Administrator</strong> — osoba z pełnymi uprawnieniami do zarządzania Platformą.</p>
+<p><strong>Platforma</strong> — aplikacja webowa ComPass dostępna pod adresem compass.b2bnetwork.pl. <strong>Operator</strong> — B2B.net S.A. <strong>Konsultant</strong> — osoba fizyczna prowadząca działalność gospodarczą, współpracująca z Operatorem na podstawie umowy B2B. <strong>Centrala</strong> — pracownik/współpracownik Operatora z uprawnieniami zarządzania. <strong>Administrator</strong> — osoba z pełnymi uprawnieniami do zarządzania Platformą.</p>
 <h2>§2. Rejestracja i dostęp</h2>
 <p>Rejestracja wymaga: adresu e-mail w domenie @b2bnetwork.pl, akceptacji niniejszego Regulaminu, akceptacji Polityki Prywatności, wyrażenia zgody na przetwarzanie danych (RODO). Konto jest aktywowane po weryfikacji e-mail i ukończeniu procesu onboardingu.</p>
 <h2>§3. Role i uprawnienia</h2>
@@ -166,7 +166,7 @@ INSERT INTO um_legal_documents (slug, title, content_html, version, is_active, r
 
 ('cooperation', 'Warunki Współpracy z Konsultantami', '<h1>Warunki Współpracy</h1>
 <h2>1. Zakres usług B2B.net</h2>
-<p>B2B Network S.A. świadczy usługi pośrednictwa w zakresie zatrudnienia specjalistów IT na podstawie umów B2B. Platforma ComPass służy do zarządzania współpracą, dokumentacją i komunikacją.</p>
+<p>B2B.net S.A. świadczy usługi pośrednictwa w zakresie zatrudnienia specjalistów IT na podstawie umów B2B. Platforma ComPass służy do zarządzania współpracą, dokumentacją i komunikacją.</p>
 <h2>2. Obowiązki konsultanta</h2>
 <p>Konsultant zobowiązuje się do: terminowego raportowania czasu pracy, utrzymywania aktualnych danych w profilu, przestrzegania zasad poufności projektu klienta, informowania o zmianach w dostępności.</p>
 <h2>3. Poufność (NDA)</h2>

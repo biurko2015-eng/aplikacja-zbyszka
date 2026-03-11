@@ -120,7 +120,7 @@ export async function sendRoleChangeEmail(
         : `Twoja rola w Centrali została odebrana`
 
     const body = isAdded
-        ? `Zostałeś dodany do Centrali B2B Network jako <strong>${roleLabel}</strong>.<br/><br/>Aby aktywować nowe uprawnienia, <strong>wyloguj się i zaloguj ponownie</strong> do aplikacji ComPass.`
+        ? `Zostałeś dodany do Centrali B2B.net jako <strong>${roleLabel}</strong>.<br/><br/>Aby aktywować nowe uprawnienia, <strong>wyloguj się i zaloguj ponownie</strong> do aplikacji ComPass.`
         : `Twoja rola w Centrali została odebrana. Po ponownym zalogowaniu powrócisz do roli Konsultanta.<br/><br/>Jeśli uważasz, że to błąd, skontaktuj się z administratorem systemu.`
 
     const accentColor = isAdded ? '#3A8DFF' : '#f59e0b'

@@ -73,7 +73,7 @@ export function WhistleblowerSection() {
                 </CardHeader>
                 <CardContent className="pt-6 space-y-6">
                     <p className="text-sm text-gray-300 leading-relaxed">
-                        B2B Network zapewnia każdemu współpracownikowi możliwość bezpiecznego i anonimowego zgłaszania
+                        B2B.net zapewnia każdemu współpracownikowi możliwość bezpiecznego i anonimowego zgłaszania
                         naruszeń prawa. Nasza procedura gwarantuje pełną ochronę przed działaniami odwetowymi.
                     </p>
 
