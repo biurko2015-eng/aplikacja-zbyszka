@@ -1,20 +1,15 @@
 services:
   - type: web
     name: compass-14fg
-    runtime: node
+    runtime: docker
     rootDir: APK-COMPASS
     repo: https://github.com/biurko2015-eng/aplikacja-zbyszka.git
     branch: main
-    buildCommand: npm ci && npm run build
-    startCommand: node .next/standalone/server.js
+    dockerfilePath: ./Dockerfile
     autoDeploy: true
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
-        value: "3000"
-      - key: HOSTNAME
-        value: "0.0.0.0"
       - key: NEXT_PUBLIC_SUPABASE_URL
         sync: false
       - key: NEXT_PUBLIC_SUPABASE_ANON_KEY

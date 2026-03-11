@@ -380,15 +380,8 @@ export default function LoginPage() {
                         </button>
                     </p>
                 </CardFooter>
-                <div className="text-center pb-4 space-y-2">
-                    <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground/60">
-                        <Link href="/privacy-policy" className="hover:text-primary transition-colors">Polityka prywatności</Link>
-                        <span>·</span>
-                        <Link href="/terms" className="hover:text-primary transition-colors">Regulamin</Link>
-                        <span>·</span>
-                        <Link href="/help" className="hover:text-primary transition-colors">Pomoc</Link>
-                    </div>
-                    <p className="text-xs text-muted-foreground/40">ComPass by Inframinds</p>
+                <div className="text-center pb-4 text-xs text-muted-foreground/60">
+                    ComPass by Inframinds
                 </div>
             </Card>
         </div>

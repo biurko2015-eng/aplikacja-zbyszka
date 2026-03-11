@@ -18,7 +18,6 @@ import {
     MessageCircle,
     TrendingUp,
     KanbanSquare,
-    Shield,
 } from 'lucide-react'
 import { Logo } from '@/components/common/Logo'
 import { useTheme } from '@/lib/contexts/ThemeContext'
@@ -83,7 +82,6 @@ export function Sidebar({ role, user, permissions, forMobile = false }: SidebarP
         { name: 'Zadania', href: '/admin/tasks', icon: KanbanSquare },
         { name: 'Program lojalnościowy', href: '/loyalty', icon: Trophy },
         { name: 'Strefa Rozwoju', href: '/development', icon: Rocket },
-        { name: 'Compliance', href: '/admin/compliance', icon: Shield },
         { name: t('settings'), href: '/admin/settings', icon: Settings },
     ]
 
