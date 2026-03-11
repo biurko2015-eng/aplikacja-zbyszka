@@ -2,14 +2,14 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
-export const metadata = { title: 'Polityka prywatności | ComPass' }
+export const metadata = { title: 'Centrum Pomocy | ComPass' }
 
-export default async function PrivacyPolicyPage() {
+export default async function HelpPage() {
   const supabase = createClient()
   const { data: doc } = await supabase
     .from('um_legal_documents')
     .select('title, content_html, version, updated_at')
-    .eq('slug', 'privacy-policy')
+    .eq('slug', 'help')
     .eq('is_active', true)
     .maybeSingle()
 
@@ -38,9 +38,9 @@ export default async function PrivacyPolicyPage() {
         </>
       ) : (
         <>
-          <h1 className="text-2xl font-bold mb-4">Polityka prywatności</h1>
+          <h1 className="text-2xl font-bold mb-4">Centrum Pomocy</h1>
           <p className="text-muted-foreground mb-6">
-            Strona w przygotowaniu. Treść polityki prywatności i informacje o przetwarzaniu danych osobowych (RODO) zostaną udostępnione wkrótce.
+            Strona w przygotowaniu. Treść centrum pomocy zostanie udostępniona wkrótce.
           </p>
         </>
       )}
