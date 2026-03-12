@@ -15,7 +15,7 @@ export default defineConfig({
         ? [['github'], ['html', { open: 'never' }]]
         : [['list'], ['html', { open: 'never' }]],
     use: {
-        baseURL: process.env.BASE_URL || 'https://compass-14fg.onrender.com',
+        baseURL: process.env.BASE_URL || 'https://compass-blql.onrender.com',
         headless: true,
         screenshot: 'only-on-failure',
         video: 'retain-on-failure',
