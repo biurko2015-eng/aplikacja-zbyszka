@@ -126,38 +126,103 @@ jobs:
     name: Smoke Test
     runs-on: ubuntu-latest
     needs: deploy
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
-      - name: Check app is responding
+      - name: Wait for app to be ready
         run: |
           echo "Testing ${{ env.APP_URL }}..."
-
-          for i in $(seq 1 5); do
+          for i in $(seq 1 10); do
             HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -L "${{ env.APP_URL }}/login" --max-time 30)
             echo "Attempt $i: HTTP $HTTP_CODE"
-
             if [ "$HTTP_CODE" = "200" ]; then
               echo "App is responding!"
-              echo "## Smoke Test Passed" >> $GITHUB_STEP_SUMMARY
-              echo "- Login page: HTTP 200" >> $GITHUB_STEP_SUMMARY
               exit 0
             fi
-
-            sleep 10
+            sleep 15
           done
-
-          echo "::error::App not responding after 5 attempts"
+          echo "::error::App not responding after 10 attempts"
           exit 1
 
-      - name: Check API health
+      - name: Test public pages
         run: |
-          # Test that Supabase connection works via app
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -L "${{ env.APP_URL }}/api/health" --max-time 15 || echo "404")
-          echo "Health endpoint: HTTP $HTTP_CODE"
+          PASS=0; FAIL=0
+          for PAGE in "/login" "/privacy-policy" "/terms"; do
+            HTTP=$(curl -s -o /dev/null -w "%{http_code}" -L "${{ env.APP_URL }}$PAGE" --max-time 15)
+            if [ "$HTTP" = "200" ]; then
+              echo "✅ $PAGE — HTTP $HTTP"
+              PASS=$((PASS + 1))
+            else
+              echo "❌ $PAGE — HTTP $HTTP"
+              FAIL=$((FAIL + 1))
+            fi
+          done
+          echo "Pages: $PASS passed, $FAIL failed"
+          if [ "$FAIL" -gt 0 ]; then exit 1; fi
 
-          # Even if /api/health doesn't exist (404), the app is running
-          if [ "$HTTP_CODE" != "000" ]; then
-            echo "Server is reachable."
+      - name: Test Supabase auth (admin login)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          TEST_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+          TEST_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+        run: |
+          RESPONSE=$(curl -s -X POST \
+            "$SUPABASE_URL/auth/v1/token?grant_type=password" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Content-Type: application/json" \
+            -d "{\"email\":\"$TEST_EMAIL\",\"password\":\"$TEST_PASSWORD\"}" \
+            --max-time 15)
+
+          TOKEN=$(echo "$RESPONSE" | jq -r '.access_token // empty')
+          if [ -n "$TOKEN" ]; then
+            echo "✅ Admin login successful (token: ${#TOKEN} chars)"
+            echo "access_token=$TOKEN" >> $GITHUB_OUTPUT
           else
-            echo "::warning::Server not reachable"
+            ERROR=$(echo "$RESPONSE" | jq -r '.error_description // .msg // "unknown"')
+            echo "❌ Admin login failed: $ERROR"
+            exit 1
           fi
+        id: auth
+
+      - name: Test Supabase data access (profiles + loyalty)
+        if: steps.auth.outputs.access_token != ''
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          TOKEN="${{ steps.auth.outputs.access_token }}"
+
+          # Test profiles
+          PROFILES=$(curl -s \
+            "$SUPABASE_URL/rest/v1/profiles?select=id&limit=5" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $TOKEN" --max-time 10)
+          COUNT=$(echo "$PROFILES" | jq 'length')
+          if [ "$COUNT" -gt 0 ]; then
+            echo "✅ Profiles accessible: $COUNT records"
+          else
+            echo "❌ No profiles returned"
+            exit 1
+          fi
+
+          # Test loyalty_transactions
+          TX=$(curl -s \
+            "$SUPABASE_URL/rest/v1/loyalty_transactions?select=id&limit=1" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $TOKEN" --max-time 10)
+          TX_OK=$(echo "$TX" | jq 'if type == "array" then "yes" else "no" end' -r)
+          if [ "$TX_OK" = "yes" ]; then
+            echo "✅ Loyalty transactions table accessible"
+          else
+            echo "⚠️ Loyalty transactions: $(echo "$TX" | jq -r '.message // "unknown error"')"
+          fi
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Smoke Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "- App URL: ${{ env.APP_URL }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Login page: tested" >> $GITHUB_STEP_SUMMARY
+          echo "- Public pages: tested" >> $GITHUB_STEP_SUMMARY
+          echo "- Supabase auth: tested" >> $GITHUB_STEP_SUMMARY
+          echo "- Data access: tested" >> $GITHUB_STEP_SUMMARY
