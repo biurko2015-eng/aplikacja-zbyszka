@@ -479,6 +479,93 @@ export async function getLoyaltyBreakdown(
     }
 }
 
+// ── Admin overview: all consultants loyalty data ──
+
+export interface ConsultantLoyaltyRow {
+    id: string
+    full_name: string | null
+    email: string | null
+    role: string
+    loyalty_points: number
+    loyalty_tier: string
+    loyalty_joined_at: string | null
+}
+
+export interface LoyaltyStats {
+    totalConsultants: number
+    avgPoints: number
+    tierDistribution: Record<string, number>
+    topPerformer: ConsultantLoyaltyRow | null
+}
+
+export interface AllConsultantsLoyaltyResult {
+    success: boolean
+    error?: string
+    consultants?: ConsultantLoyaltyRow[]
+    stats?: LoyaltyStats
+}
+
+/**
+ * Get all consultants/contractors with their loyalty data.
+ * Admin/Centrala only.
+ */
+export async function getAllConsultantsLoyalty(): Promise<AllConsultantsLoyaltyResult> {
+    try {
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return { success: false, error: 'Brak autoryzacji' }
+
+        const { data: callerProfile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single()
+
+        if (!['admin', 'administrator', 'centrala'].includes(callerProfile?.role || '')) {
+            return { success: false, error: 'Niewystarczające uprawnienia' }
+        }
+
+        const { data, error } = await supabase
+            .from('profiles')
+            .select('id, full_name, email, role, loyalty_points, loyalty_tier, loyalty_joined_at')
+            .in('role', ['consultant', 'b2b_consultant', 'contractor', 'candidate'])
+            .order('loyalty_points', { ascending: false })
+
+        if (error) throw error
+
+        const consultants: ConsultantLoyaltyRow[] = (data || []).map(p => ({
+            id: p.id,
+            full_name: p.full_name,
+            email: p.email,
+            role: p.role,
+            loyalty_points: p.loyalty_points || 0,
+            loyalty_tier: p.loyalty_tier || 'bronze',
+            loyalty_joined_at: p.loyalty_joined_at || null,
+        }))
+
+        // Compute stats
+        const totalConsultants = consultants.length
+        const totalPoints = consultants.reduce((sum, c) => sum + c.loyalty_points, 0)
+        const avgPoints = totalConsultants > 0 ? Math.round(totalPoints / totalConsultants) : 0
+
+        const tierDistribution: Record<string, number> = { bronze: 0, silver: 0, gold: 0, platinum: 0 }
+        for (const c of consultants) {
+            tierDistribution[c.loyalty_tier] = (tierDistribution[c.loyalty_tier] || 0) + 1
+        }
+
+        const topPerformer = consultants.length > 0 ? consultants[0] : null
+
+        return {
+            success: true,
+            consultants,
+            stats: { totalConsultants, avgPoints, tierDistribution, topPerformer },
+        }
+    } catch (error: any) {
+        console.error('Error in getAllConsultantsLoyalty:', error)
+        return { success: false, error: error.message }
+    }
+}
+
 // TODO:CACHE — When scale >100 users becomes a concern, wrap getLoyaltyBreakdown
 // with unstable_cache or use revalidateTag('loyalty-breakdown-{userId}') to avoid
 // re-running the aggregation on every page load.

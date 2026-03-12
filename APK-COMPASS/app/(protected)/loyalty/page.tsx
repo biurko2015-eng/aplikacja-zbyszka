@@ -23,6 +23,7 @@ import {
     BarChart3
 } from "lucide-react"
 import { MyPointsTab } from '@/components/dashboard/loyalty/MyPointsTab'
+import { AdminLoyaltyOverview } from '@/components/dashboard/loyalty/AdminLoyaltyOverview'
 import { TIER_CONFIG } from '@/lib/loyalty-config'
 
 export default async function LoyaltyPage() {
@@ -45,6 +46,7 @@ export default async function LoyaltyPage() {
     }
 
     const isAdmin = role === 'admin' || role === 'administrator'
+    const isAdminOrCentrala = ['admin', 'administrator', 'centrala'].includes(role)
 
     const currentTierInfo = TIER_CONFIG.find(t => t.name === loyaltyTier) || TIER_CONFIG[0]
     const pointsToNext = currentTierInfo.next
@@ -70,64 +72,73 @@ export default async function LoyaltyPage() {
                 </p>
             </div>
 
-            {/* Hero Section / Current Status */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <Card className="bg-gradient-to-br from-amber-500/10 to-amber-600/5 border-amber-200/20">
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Twój Status</CardTitle>
-                        <Trophy className="h-4 w-4 text-amber-500" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className={`text-2xl font-bold ${tierColorMap[loyaltyTier] || 'text-amber-500'}`}>{currentTierInfo.label}</div>
-                        <p className="text-xs text-muted-foreground">
-                            Aktywny do: Bezterminowo
-                        </p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Zgromadzone Punkty</CardTitle>
-                        <Star className="h-4 w-4 text-primary" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{loyaltyPoints.toLocaleString('pl-PL')} pkt</div>
-                        <p className="text-xs text-muted-foreground">
-                            Suma zdobytych punktów
-                        </p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Do następnego poziomu</CardTitle>
-                        <Target className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{currentTierInfo.next ? `${pointsToNext.toLocaleString('pl-PL')} pkt` : '—'}</div>
-                        <div className="h-2 w-full bg-secondary mt-2 rounded-full overflow-hidden">
-                            <div className="h-full bg-primary rounded-full" style={{ width: `${progressPercent}%` }} />
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Aktualny Poziom</CardTitle>
-                        <Gift className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{currentTierInfo.label}</div>
-                        <Button variant="link" className="px-0 h-auto text-xs text-primary">
-                            Zobacz przywileje <ArrowRight className="ml-1 h-3 w-3" />
-                        </Button>
-                    </CardContent>
-                </Card>
-            </div>
+            {/* Hero Section / Current Status — only for consultants */}
+            {!isAdminOrCentrala && (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                    <Card className="bg-gradient-to-br from-amber-500/10 to-amber-600/5 border-amber-200/20">
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Twój Status</CardTitle>
+                            <Trophy className="h-4 w-4 text-amber-500" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className={`text-2xl font-bold ${tierColorMap[loyaltyTier] || 'text-amber-500'}`}>{currentTierInfo.label}</div>
+                            <p className="text-xs text-muted-foreground">
+                                Aktywny do: Bezterminowo
+                            </p>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Zgromadzone Punkty</CardTitle>
+                            <Star className="h-4 w-4 text-primary" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{loyaltyPoints.toLocaleString('pl-PL')} pkt</div>
+                            <p className="text-xs text-muted-foreground">
+                                Suma zdobytych punktów
+                            </p>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Do następnego poziomu</CardTitle>
+                            <Target className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{currentTierInfo.next ? `${pointsToNext.toLocaleString('pl-PL')} pkt` : '—'}</div>
+                            <div className="h-2 w-full bg-secondary mt-2 rounded-full overflow-hidden">
+                                <div className="h-full bg-primary rounded-full" style={{ width: `${progressPercent}%` }} />
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">Aktualny Poziom</CardTitle>
+                            <Gift className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{currentTierInfo.label}</div>
+                            <Button variant="link" className="px-0 h-auto text-xs text-primary">
+                                Zobacz przywileje <ArrowRight className="ml-1 h-3 w-3" />
+                            </Button>
+                        </CardContent>
+                    </Card>
+                </div>
+            )}
 
-            <Tabs defaultValue="mypoints" className="space-y-4">
+            <Tabs defaultValue={isAdminOrCentrala ? "consultants" : "mypoints"} className="space-y-4">
                 <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 h-auto">
-                    <TabsTrigger value="mypoints" className="gap-1">
-                        <BarChart3 className="h-3.5 w-3.5" />
-                        Moje punkty
-                    </TabsTrigger>
+                    {isAdminOrCentrala ? (
+                        <TabsTrigger value="consultants" className="gap-1">
+                            <Users className="h-3.5 w-3.5" />
+                            Punkty konsultantów
+                        </TabsTrigger>
+                    ) : (
+                        <TabsTrigger value="mypoints" className="gap-1">
+                            <BarChart3 className="h-3.5 w-3.5" />
+                            Moje punkty
+                        </TabsTrigger>
+                    )}
                     <TabsTrigger value="overview">Przegląd</TabsTrigger>
                     <TabsTrigger value="roles">Wsparcie</TabsTrigger>
                     <TabsTrigger value="tiers">Poziomy</TabsTrigger>
@@ -135,9 +146,15 @@ export default async function LoyaltyPage() {
                     <TabsTrigger value="faq">FAQ</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="mypoints" className="space-y-4">
-                    <MyPointsTab />
-                </TabsContent>
+                {isAdminOrCentrala ? (
+                    <TabsContent value="consultants" className="space-y-4">
+                        <AdminLoyaltyOverview />
+                    </TabsContent>
+                ) : (
+                    <TabsContent value="mypoints" className="space-y-4">
+                        <MyPointsTab />
+                    </TabsContent>
+                )}
 
                 <TabsContent value="overview" className="space-y-4">
                     <Card>
