@@ -1,11 +1,9 @@
 name: E2E & RLS Tests
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
-  # Manual trigger
+  # DISABLED — replaced by ci-cd.yml pipeline
+  # Old workflow references non-existent ak-qualrix/ directory
+  # Re-enable when E2E tests are migrated to APK-COMPASS/
   workflow_dispatch:
 
 env:
