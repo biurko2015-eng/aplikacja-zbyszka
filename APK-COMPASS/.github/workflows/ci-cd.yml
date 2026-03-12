@@ -277,3 +277,198 @@ jobs:
           echo "- Browser: Chromium" >> $GITHUB_STEP_SUMMARY
           echo "- Target: ${{ env.APP_URL }}" >> $GITHUB_STEP_SUMMARY
           echo "- Tests: Smoke, Auth, Communicator, RLS, Loyalty" >> $GITHUB_STEP_SUMMARY
+
+  # ── Step 5: Auto-Diagnosis & Issue Creation ──
+  diagnose:
+    name: Diagnose & Report
+    runs-on: ubuntu-latest
+    needs: [build-check, deploy, smoke-test, e2e-tests]
+    if: failure()
+    permissions:
+      issues: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Collect failure context
+        id: diagnosis
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "Analyzing pipeline failure..."
+
+          RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          COMMIT_SHA="${{ github.sha }}"
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          COMMIT_AUTHOR=$(git log -1 --pretty=%an)
+          BRANCH="${{ github.ref_name }}"
+          TIMESTAMP=$(date -u '+%Y-%m-%d %H:%M UTC')
+
+          # ── Determine which jobs failed ──
+          FAILED_JOBS=""
+          BUILD_STATUS="${{ needs.build-check.result }}"
+          DEPLOY_STATUS="${{ needs.deploy.result }}"
+          SMOKE_STATUS="${{ needs.smoke-test.result }}"
+          E2E_STATUS="${{ needs.e2e-tests.result }}"
+
+          [ "$BUILD_STATUS" = "failure" ] && FAILED_JOBS="$FAILED_JOBS build-check"
+          [ "$DEPLOY_STATUS" = "failure" ] && FAILED_JOBS="$FAILED_JOBS deploy"
+          [ "$SMOKE_STATUS" = "failure" ] && FAILED_JOBS="$FAILED_JOBS smoke-test"
+          [ "$E2E_STATUS" = "failure" ] && FAILED_JOBS="$FAILED_JOBS e2e-tests"
+
+          # ── Classify failure category ──
+          CATEGORY="unknown"
+          SEVERITY="medium"
+          ICON="🟡"
+
+          if echo "$FAILED_JOBS" | grep -q "build-check"; then
+            CATEGORY="BUILD"
+            SEVERITY="critical"
+            ICON="🔴"
+            DIAGNOSIS="Kod nie kompiluje się. Prawdopodobnie błąd TypeScript lub brakujące zależności."
+            FIX_PROPOSAL="1. Sprawdź logi TypeScript w Actions → build-check → TypeScript check
+          2. Uruchom lokalnie: \`cd APK-COMPASS && npx tsc --noEmit\`
+          3. Napraw błędy typu → commit → push"
+            PRIORITY="P0 — blokuje deploy"
+
+          elif echo "$FAILED_JOBS" | grep -q "deploy"; then
+            CATEGORY="DEPLOY"
+            SEVERITY="critical"
+            ICON="🔴"
+            DIAGNOSIS="Deploy na Render nie powiódł się. Możliwe przyczyny: timeout, błąd runtime, brak zmiennych środowiskowych."
+            FIX_PROPOSAL="1. Sprawdź Render Dashboard: https://dashboard.render.com
+          2. Sprawdź logi serwisu: Events → Latest deploy
+          3. Zweryfikuj zmienne środowiskowe w Render → Environment
+          4. Jeśli timeout — prawdopodobnie cold start Render Free Tier"
+            PRIORITY="P0 — aplikacja nie działa"
+
+          elif echo "$FAILED_JOBS" | grep -q "smoke-test"; then
+            CATEGORY="SMOKE"
+            SEVERITY="high"
+            ICON="🟠"
+            DIAGNOSIS="Aplikacja się wdrożyła, ale testy bazowe nie przeszły. Możliwe: strona nie odpowiada, błąd auth Supabase, problem z danymi."
+            FIX_PROPOSAL="1. Sprawdź czy ${{ env.APP_URL }}/login odpowiada (otwórz w przeglądarce)
+          2. Sprawdź Supabase Dashboard → Authentication → Users
+          3. Zweryfikuj czy konto testowe istnieje i hasło jest aktualne
+          4. Sprawdź RLS policies w Supabase → Table Editor"
+            PRIORITY="P1 — deploy OK ale funkcjonalność zepsuta"
+
+          elif echo "$FAILED_JOBS" | grep -q "e2e-tests"; then
+            CATEGORY="E2E"
+            SEVERITY="medium"
+            ICON="🟡"
+            DIAGNOSIS="Deploy i smoke testy OK, ale testy przeglądarkowe wykryły problem UI. Może to być zmiana layoutu, brakujący element, timeout lub flaky test."
+            FIX_PROPOSAL="1. Pobierz raport Playwright z Artifacts (zakładka Actions → Artifacts)
+          2. Sprawdź screenshoty z momentu błędu
+          3. Otwórz trace viewer: \`npx playwright show-trace trace.zip\`
+          4. Jeśli test jest flaky (przechodzi czasem) — rozważ zwiększenie timeout
+          5. Jeśli UI się zmienił — zaktualizuj selektory w e2e/*.spec.ts"
+            PRIORITY="P2 — app działa, ale UX regresja"
+          fi
+
+          # ── Save to outputs ──
+          {
+            echo "category=$CATEGORY"
+            echo "severity=$SEVERITY"
+            echo "icon=$ICON"
+            echo "priority=$PRIORITY"
+            echo "failed_jobs=$FAILED_JOBS"
+          } >> $GITHUB_OUTPUT
+
+          # ── Save multiline outputs via files ──
+          echo "$DIAGNOSIS" > /tmp/diagnosis.txt
+          echo "$FIX_PROPOSAL" > /tmp/fix_proposal.txt
+
+          # ── Save metadata ──
+          {
+            echo "run_url=$RUN_URL"
+            echo "commit_sha=$COMMIT_SHA"
+            echo "branch=$BRANCH"
+            echo "timestamp=$TIMESTAMP"
+          } >> $GITHUB_OUTPUT
+
+          echo "commit_msg<<EOFMSG" >> $GITHUB_OUTPUT
+          echo "$COMMIT_MSG" >> $GITHUB_OUTPUT
+          echo "EOFMSG" >> $GITHUB_OUTPUT
+
+          echo "commit_author=$COMMIT_AUTHOR" >> $GITHUB_OUTPUT
+
+      - name: Create diagnostic GitHub Issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          DIAGNOSIS=$(cat /tmp/diagnosis.txt)
+          FIX_PROPOSAL=$(cat /tmp/fix_proposal.txt)
+
+          TITLE="${{ steps.diagnosis.outputs.icon }} Pipeline FAIL [${{ steps.diagnosis.outputs.category }}] — ${{ steps.diagnosis.outputs.priority }}"
+
+          BODY=$(cat <<'HEREDOC_END'
+          ## ${{ steps.diagnosis.outputs.icon }} Pipeline Failure Report
+
+          | | |
+          |---|---|
+          | **Kategoria** | ${{ steps.diagnosis.outputs.category }} |
+          | **Priorytet** | ${{ steps.diagnosis.outputs.priority }} |
+          | **Severity** | ${{ steps.diagnosis.outputs.severity }} |
+          | **Branch** | `${{ steps.diagnosis.outputs.branch }}` |
+          | **Commit** | `${{ steps.diagnosis.outputs.commit_sha }}` |
+          | **Autor** | ${{ steps.diagnosis.outputs.commit_author }} |
+          | **Czas** | ${{ steps.diagnosis.outputs.timestamp }} |
+
+          ### Commit message
+          ```
+          ${{ steps.diagnosis.outputs.commit_msg }}
+          ```
+
+          ### Diagnoza
+          HEREDOC_END
+
+          BODY="$BODY
+          $DIAGNOSIS
+
+          ### Proponowana naprawa
+          $FIX_PROPOSAL
+
+          ### Status jobów
+          | Job | Status |
+          |-----|--------|
+          | TypeScript & Build | \`${{ needs.build-check.result }}\` |
+          | Deploy to Render | \`${{ needs.deploy.result }}\` |
+          | Smoke Test | \`${{ needs.smoke-test.result }}\` |
+          | E2E Browser Tests | \`${{ needs.e2e-tests.result }}\` |
+
+          ### Linki
+          - [Pipeline Run](${{ steps.diagnosis.outputs.run_url }})
+          - [Aplikacja](${{ env.APP_URL }})
+          - [Render Dashboard](https://dashboard.render.com)
+
+          ---
+          > **Decyzja należy do Ciebie.** Ten issue zawiera automatyczną diagnozę i propozycję naprawy.
+          > Zamknij issue po naprawie lub dodaj komentarz z decyzją.
+          >
+          > 🤖 _Wygenerowane automatycznie przez CI/CD Pipeline_"
+
+          gh issue create \
+            --title "$TITLE" \
+            --body "$BODY" \
+            --label "bug,ci-cd,auto-diagnosis" \
+            --assignee "biurko2015-eng" 2>/dev/null || \
+
+          gh issue create \
+            --title "$TITLE" \
+            --body "$BODY" 2>/dev/null || \
+
+          echo "::warning::Could not create issue (labels may not exist). Check permissions."
+
+      - name: Send email notification
+        run: |
+          echo "## 📧 Notification Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Failure detected in pipeline.**" >> $GITHUB_STEP_SUMMARY
+          echo "- Category: ${{ steps.diagnosis.outputs.category }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Severity: ${{ steps.diagnosis.outputs.severity }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Priority: ${{ steps.diagnosis.outputs.priority }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Failed jobs: ${{ steps.diagnosis.outputs.failed_jobs }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📋 GitHub Issue created with diagnosis and fix proposal." >> $GITHUB_STEP_SUMMARY
+          echo "✋ **Awaiting your decision — no automatic changes will be made.**" >> $GITHUB_STEP_SUMMARY
