@@ -46,6 +46,12 @@ export default function LoginPage() {
     const [mfaUserId, setMfaUserId] = useState<string | null>(null)
     const [mfaCode, setMfaCode] = useState('')
 
+    // Detect desktop for opening links in new tab
+    const [isDesktop, setIsDesktop] = useState(false)
+    useEffect(() => {
+        setIsDesktop(window.innerWidth >= 768)
+    }, [])
+
     // ─── Shake trigger ──────────────────────────────────────────────────
     const triggerShake = useCallback(() => {
         setShaking(true)
@@ -382,11 +388,11 @@ export default function LoginPage() {
                 </CardFooter>
                 <div className="text-center pb-4 space-y-2">
                     <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground/60">
-                        <Link href="/privacy-policy" className="hover:text-primary transition-colors">Polityka prywatności</Link>
+                        <a href="/privacy-policy" target={isDesktop ? '_blank' : undefined} rel={isDesktop ? 'noopener noreferrer' : undefined} className="hover:text-primary transition-colors">Polityka prywatności</a>
                         <span>·</span>
-                        <Link href="/terms" className="hover:text-primary transition-colors">Regulamin</Link>
+                        <a href="/terms" target={isDesktop ? '_blank' : undefined} rel={isDesktop ? 'noopener noreferrer' : undefined} className="hover:text-primary transition-colors">Regulamin</a>
                         <span>·</span>
-                        <Link href="/help" className="hover:text-primary transition-colors">Pomoc</Link>
+                        <a href="/help" target={isDesktop ? '_blank' : undefined} rel={isDesktop ? 'noopener noreferrer' : undefined} className="hover:text-primary transition-colors">Pomoc</a>
                     </div>
                     <p className="text-xs text-muted-foreground/40">ComPass by Inframinds</p>
                 </div>
